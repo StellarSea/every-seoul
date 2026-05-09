@@ -10,3 +10,69 @@ export interface Newsletter {
   featured?: boolean;
   excerpt: string;
 }
+
+export type AppTab = '뉴스레터' | '생활정보' | '맞춤정책';
+
+export type TagColor = 'orange' | 'blue' | 'green' | 'purple' | 'red';
+
+export interface InterestTag {
+  name: string;
+  color: TagColor;
+}
+
+export type EmploymentStatus =
+  | ''
+  | 'employed'
+  | 'job-seeking'
+  | 'student'
+  | 'self-employed'
+  | 'etc';
+
+export interface UserPreferences {
+  age: string;
+  district: string;
+  hasChildren: boolean;
+  childrenCount: string;
+  employmentStatus: EmploymentStatus;
+  interests: string[];
+}
+
+export interface Policy {
+  id: number;
+  title: string;
+  description: string;
+  deadline: string;
+  period: string;
+  category: string;
+  status: string;
+  statusColor: TagColor;
+  views: number;
+  relevance: number;
+}
+
+export interface ProductPrice {
+  name: string;
+  category: string;
+  currentPrice: number;
+  previousPrice: number;
+  unit: string;
+  change: number;
+  trend: 'up' | 'down';
+  stores: { name: string; price: number; location: string }[];
+  graph: { date: string; price: number }[];
+}
+
+export interface EventDetail {
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  locationDetail: string;
+  capacity: number;
+  registered: number;
+  description: string;
+  program: { time: string; content: string }[];
+  benefits: string[];
+  requirements: string[];
+  contact: string;
+}
