@@ -16,7 +16,10 @@ interface SettingsModalProps {
   onDistrictChange: (district: string) => void;
   onEmploymentStatusChange: (status: EmploymentStatus) => void;
   onHasChildrenChange: (hasChildren: boolean) => void;
+  onSave: () => void;
   onToggleInterest: (interest: string, checked: boolean) => void;
+  saveError: string;
+  saving: boolean;
 }
 
 export function SettingsModal({
@@ -27,7 +30,10 @@ export function SettingsModal({
   onDistrictChange,
   onEmploymentStatusChange,
   onHasChildrenChange,
-  onToggleInterest
+  onSave,
+  onToggleInterest,
+  saveError,
+  saving
 }: SettingsModalProps) {
   return (
     <ModalShell maxWidth="max-w-2xl" onClose={onClose}>
@@ -150,12 +156,16 @@ export function SettingsModal({
             취소
           </button>
           <button
-            onClick={onClose}
-            className="flex-1 bg-[#4267B2] text-white py-3 rounded-lg hover:bg-[#365899] transition-colors"
+            onClick={onSave}
+            disabled={saving}
+            className="flex-1 bg-[#4267B2] text-white py-3 rounded-lg hover:bg-[#365899] disabled:opacity-60 transition-colors"
           >
-            저장
+            {saving ? '저장 중...' : '저장'}
           </button>
         </div>
+        {saveError && (
+          <p className="mt-3 text-center text-sm text-red-600">{saveError}</p>
+        )}
       </div>
     </ModalShell>
   );

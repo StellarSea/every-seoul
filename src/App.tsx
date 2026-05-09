@@ -1,12 +1,7 @@
-import { useMemo } from 'react';
-import {
-  allTags,
-  eventDetails,
-  newsletters,
-  policies,
-  productPrices
-} from './data/appData';
+import { useMemo, useState } from 'react';
+import { allTags, eventDetails, policies, productPrices } from './data/appData';
 import { useAppState } from './hooks/useAppState';
+import { useNewsletters } from './hooks/useNewsletters';
 import LoginModal from './components/modals/LoginModal';
 import { AppHeader } from './components/layout/AppHeader';
 import { AppLayout } from './components/layout/AppLayout';
@@ -17,7 +12,8 @@ import {
   getFilteredNewsletters,
   getFilteredPolicies
 } from './utils/appFilters';
-import { useAuthStore } from './store/authStore';
+import { updateUserPreferences } from './auth/authApi';
+import { useAuthStore, type AuthUser } from './store/authStore';
 import {
   EventDetailModal,
   ProductPriceModal,
@@ -36,11 +32,19 @@ import {
 
 function App() {
   const state = useAppState();
-  const { login, loginWithGoogle, logout, user } = useAuthStore();
+  const { login, loginWithGoogle, logout, updatePreferences, user } =
+    useAuthStore();
+  const [settingsError, setSettingsError] = useState('');
+  const [savingSettings, setSavingSettings] = useState(false);
+  const newsletterQuery = useNewsletters(
+    state.preferences.district,
+    user?.provider === 'google' ? user.id : undefined
+  );
 
   const filteredNewsletters = useMemo(
-    () => getFilteredNewsletters(newsletters, state.preferences),
-    [state.preferences]
+    () =>
+      getFilteredNewsletters(newsletterQuery.newsletters, state.preferences),
+    [newsletterQuery.newsletters, state.preferences]
   );
   const filteredPolicies = useMemo(
     () => getFilteredPolicies(policies, state.preferences),
@@ -63,6 +67,47 @@ function App() {
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleGoogleLogin = (googleUser: AuthUser) => {
+    loginWithGoogle(googleUser);
+    if (googleUser.preferences) {
+      state.applyPersistedPreferences(googleUser.preferences);
+    }
+    state.setShowLoginModal(false);
+  };
+
+  const handleOpenNews = (newsId: number) => {
+    state.openNews(newsId);
+    void newsletterQuery.loadDetail(newsId);
+  };
+
+  const handleSaveSettings = async () => {
+    setSettingsError('');
+
+    if (!user || user.provider !== 'google') {
+      setSettingsError('Google 로그인 후 설정을 저장할 수 있습니다.');
+      return;
+    }
+
+    setSavingSettings(true);
+    try {
+      const savedPreferences = await updateUserPreferences(
+        user.id,
+        state.preferences
+      );
+      updatePreferences(savedPreferences);
+      state.applyPersistedPreferences(savedPreferences);
+      state.setShowSettings(false);
+    } catch (error) {
+      setSettingsError(
+        error instanceof Error
+          ? error.message
+          : '설정 저장 중 오류가 발생했습니다.'
+      );
+    } finally {
+      setSavingSettings(false);
+    }
   };
 
   return (
@@ -93,9 +138,13 @@ function App() {
           <NewsletterPage
             bookmarkedNews={state.bookmarkedNews}
             district={state.preferences.district}
+            error={newsletterQuery.error}
+            loading={newsletterQuery.loading}
             newsletters={filteredNewsletters}
+            refreshing={newsletterQuery.refreshing}
             tags={allTags}
-            onNewsClick={state.openNews}
+            onNewsClick={handleOpenNews}
+            onRefresh={newsletterQuery.refreshFeed}
             onToggleBookmark={state.toggleNewsBookmark}
           />
         )}
@@ -122,10 +171,7 @@ function App() {
       {state.showLoginModal && (
         <LoginModal
           onClose={() => state.setShowLoginModal(false)}
-          onGoogleLogin={(googleUser) => {
-            loginWithGoogle(googleUser);
-            state.setShowLoginModal(false);
-          }}
+          onGoogleLogin={handleGoogleLogin}
           onLogin={handleLogin}
         />
       )}
@@ -189,7 +235,10 @@ function App() {
           onDistrictChange={state.setDistrict}
           onEmploymentStatusChange={state.setEmploymentStatus}
           onHasChildrenChange={state.setHasChildren}
+          onSave={handleSaveSettings}
           onToggleInterest={state.toggleInterest}
+          saveError={settingsError}
+          saving={savingSettings}
         />
       )}
 
@@ -201,7 +250,7 @@ function App() {
           policies={filteredPolicies}
           tags={allTags}
           onClose={() => state.setShowBookmarks(false)}
-          onNewsClick={state.openNews}
+          onNewsClick={handleOpenNews}
           onPolicyClick={state.openPolicy}
           onToggleNewsBookmark={state.toggleNewsBookmark}
           onTogglePolicyBookmark={state.togglePolicyBookmark}

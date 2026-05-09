@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { AuthUser } from '../../store/authStore';
 import {
   getGoogleClientId,
-  loadGoogleIdentityScript,
-  parseGoogleCredential
+  loadGoogleIdentityScript
 } from '../../auth/googleIdentity';
+import { loginWithGoogleCredential } from '../../auth/authApi';
 
 interface GoogleSignInButtonProps {
   onSuccess: (user: AuthUser) => void;
@@ -37,11 +37,15 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
               return;
             }
 
-            try {
-              onSuccess(parseGoogleCredential(response.credential));
-            } catch {
-              setErrorMessage('Google 로그인 정보를 해석하지 못했습니다.');
-            }
+            loginWithGoogleCredential(response.credential)
+              .then(onSuccess)
+              .catch((error: unknown) => {
+                setErrorMessage(
+                  error instanceof Error
+                    ? error.message
+                    : 'Google 로그인에 실패했습니다.'
+                );
+              });
           }
         });
         window.google.accounts.id.renderButton(buttonRef.current, {

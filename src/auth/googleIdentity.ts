@@ -1,5 +1,3 @@
-import type { AuthUser } from '../store/authStore';
-
 const GOOGLE_SCRIPT_ID = 'google-identity-services';
 const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
@@ -36,13 +34,6 @@ interface GoogleIdentityApi {
   };
 }
 
-interface GoogleJwtPayload {
-  sub: string;
-  name?: string;
-  email?: string;
-  picture?: string;
-}
-
 declare global {
   interface Window {
     google?: GoogleIdentityApi;
@@ -76,34 +67,4 @@ export function loadGoogleIdentityScript() {
     script.onerror = () => reject(new Error('Google login script failed'));
     document.head.appendChild(script);
   });
-}
-
-export function parseGoogleCredential(credential: string): AuthUser {
-  const payload = decodeJwtPayload<GoogleJwtPayload>(credential);
-
-  return {
-    id: payload.sub,
-    name: payload.name || payload.email || 'Google 사용자',
-    email: payload.email,
-    picture: payload.picture,
-    provider: 'google'
-  };
-}
-
-function decodeJwtPayload<T>(token: string): T {
-  const payload = token.split('.')[1];
-
-  if (!payload) {
-    throw new Error('Invalid Google credential');
-  }
-
-  const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-  const decoded = window.atob(base64);
-  const json = decodeURIComponent(
-    Array.from(decoded)
-      .map((char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`)
-      .join('')
-  );
-
-  return JSON.parse(json) as T;
 }

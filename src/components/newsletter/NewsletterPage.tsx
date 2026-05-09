@@ -6,50 +6,80 @@ import { tagColorClass } from '../../utils/tagStyles';
 interface NewsletterPageProps {
   bookmarkedNews: number[];
   district: string;
+  error: string;
+  loading: boolean;
   newsletters: Newsletter[];
+  refreshing: boolean;
   tags: InterestTag[];
   onNewsClick: (newsId: number) => void;
+  onRefresh: () => void;
   onToggleBookmark: (newsId: number) => void;
 }
 
 export function NewsletterPage({
   bookmarkedNews,
   district,
+  error,
+  loading,
   newsletters,
+  refreshing,
   tags,
   onNewsClick,
+  onRefresh,
   onToggleBookmark
 }: NewsletterPageProps) {
+  const featuredNewsletters = newsletters.filter(
+    (newsletter) => newsletter.featured
+  );
+  const listNewsletters = newsletters.filter(
+    (newsletter) => !newsletter.featured
+  );
+
   return (
     <>
-      <div id="newsletter-top">
-        <h2 className="text-xl mb-1">오늘의 {district || '강남구'} 요약</h2>
-        <p className="text-sm text-gray-500">최신 뉴스레터 10개</p>
+      <div
+        id="newsletter-top"
+        className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+      >
+        <div>
+          <h2 className="text-xl mb-1">오늘의 {district || '강남구'} 요약</h2>
+          <p className="text-sm text-gray-500">
+            백엔드에서 가져온 최신 뉴스레터 {newsletters.length}개
+          </p>
+        </div>
+        <button
+          onClick={onRefresh}
+          disabled={loading || refreshing}
+          className="self-start rounded bg-[#4267B2] px-4 py-2 text-sm text-white transition-colors hover:bg-[#365899] disabled:cursor-not-allowed disabled:bg-gray-300"
+        >
+          {refreshing ? '갱신 중...' : '새로고침'}
+        </button>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+          뉴스레터를 불러오는 중입니다.
+        </div>
+      )}
+
+      {!loading && newsletters.length === 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
+          <h3 className="mb-2 text-lg">아직 표시할 뉴스레터가 없습니다</h3>
+          <p className="text-sm text-gray-500">
+            백엔드 수집 파이프라인을 실행하거나 다른 자치구를 선택해 주세요.
+          </p>
+        </div>
+      )}
 
       <div id="featured-news">
-        {newsletters
-          .filter((newsletter) => newsletter.featured)
-          .map((newsletter) => (
-            <FeaturedNewsletterCard
-              key={newsletter.id}
-              bookmarked={bookmarkedNews.includes(newsletter.id)}
-              newsletter={newsletter}
-              tags={tags}
-              onClick={() => onNewsClick(newsletter.id)}
-              onToggleBookmark={() => onToggleBookmark(newsletter.id)}
-            />
-          ))}
-      </div>
-
-      <div id="all-news" className="pt-4">
-        <h2 className="text-lg">{district || '강남구'} 뉴스 요약</h2>
-      </div>
-
-      {newsletters
-        .filter((newsletter) => !newsletter.featured)
-        .map((newsletter) => (
-          <NewsletterListItem
+        {featuredNewsletters.map((newsletter) => (
+          <FeaturedNewsletterCard
             key={newsletter.id}
             bookmarked={bookmarkedNews.includes(newsletter.id)}
             newsletter={newsletter}
@@ -58,6 +88,22 @@ export function NewsletterPage({
             onToggleBookmark={() => onToggleBookmark(newsletter.id)}
           />
         ))}
+      </div>
+
+      <div id="all-news" className="pt-4">
+        <h2 className="text-lg">{district || '강남구'} 뉴스 요약</h2>
+      </div>
+
+      {listNewsletters.map((newsletter) => (
+        <NewsletterListItem
+          key={newsletter.id}
+          bookmarked={bookmarkedNews.includes(newsletter.id)}
+          newsletter={newsletter}
+          tags={tags}
+          onClick={() => onNewsClick(newsletter.id)}
+          onToggleBookmark={() => onToggleBookmark(newsletter.id)}
+        />
+      ))}
     </>
   );
 }
@@ -95,6 +141,11 @@ function FeaturedNewsletterCard({
             <span className="text-xs text-gray-500">{newsletter.category}</span>
             <span className="text-xs text-gray-400">•</span>
             <span className="text-xs text-gray-500">{newsletter.date}</span>
+            {newsletter.isRead === false && (
+              <span className="rounded bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                새 글
+              </span>
+            )}
           </div>
           <BookmarkButton active={bookmarked} onClick={onToggleBookmark} />
         </div>
@@ -125,6 +176,14 @@ function NewsletterListItem({
           <span className="text-xs text-gray-500">{newsletter.category}</span>
           <span className="text-xs text-gray-400">•</span>
           <span className="text-xs text-gray-500">{newsletter.date}</span>
+          {newsletter.relevance > 0 && (
+            <>
+              <span className="text-xs text-gray-400">•</span>
+              <span className="text-xs text-blue-600">
+                추천 {newsletter.relevance}점
+              </span>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-gray-400">조회 {newsletter.views}</span>

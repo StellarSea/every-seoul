@@ -21,6 +21,30 @@ export interface Newsletter {
   views: number;
   featured?: boolean;
   excerpt: string;
+  isRead?: boolean;
+  sourceUrl?: string;
+  sections?: NewsletterSection[];
+  culturalEvents?: NewsletterEvent[];
+  weather?: string;
+  generatedAt?: string;
+}
+
+export interface NewsletterSection {
+  category: string;
+  highlights: NewsletterHighlight[];
+}
+
+export interface NewsletterHighlight {
+  title: string;
+  summary: string;
+  link?: string;
+}
+
+export interface NewsletterEvent {
+  title: string;
+  place?: string;
+  date?: string;
+  fee?: string;
 }
 
 export interface InterestTag {
@@ -34,6 +58,15 @@ export interface UserPreferences {
   hasChildren: boolean;
   childrenCount: string;
   employmentStatus: EmploymentStatus;
+  interests: string[];
+}
+
+export interface PersistedUserPreferences {
+  age: number | null;
+  districts: string[];
+  has_children: boolean;
+  children_count: number | null;
+  employment_status: EmploymentStatus;
   interests: string[];
 }
 

@@ -62,6 +62,8 @@ Keep `App.tsx` thin. Put new behavior in components, hooks, stores, data, or uti
 ## Environment
 
 - Local frontend URL is usually `http://localhost:5173` or `http://127.0.0.1:5173`.
+- Local backend repo: `C:\JaeEonYu\dev\every-seoul-backend`
+- Local backend API URL is usually `http://localhost:8000/api`.
 - If configuring Google OAuth, add both local origins in Google Cloud Console.
 
 ## Verification Expectations

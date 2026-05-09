@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { AppTab, EmploymentStatus, UserPreferences } from '../types/app';
+import type {
+  AppTab,
+  EmploymentStatus,
+  PersistedUserPreferences,
+  UserPreferences
+} from '../types/app';
 
 export function useAppState() {
   const [activeTab, setActiveTab] = useState<AppTab>('뉴스레터');
@@ -92,6 +97,17 @@ export function useAppState() {
     );
   };
 
+  const applyPersistedPreferences = (saved: PersistedUserPreferences) => {
+    setAge(saved.age === null ? '' : String(saved.age));
+    setDistrict(saved.districts[0] || '강남구');
+    setHasChildren(saved.has_children);
+    setChildrenCount(
+      saved.children_count === null ? '' : String(saved.children_count)
+    );
+    setEmploymentStatus(saved.employment_status);
+    setInterests(saved.interests);
+  };
+
   return {
     activeTab,
     bookmarkedNews,
@@ -112,6 +128,7 @@ export function useAppState() {
     setDistrict,
     setEmploymentStatus,
     setHasChildren,
+    applyPersistedPreferences,
     setSelectedTags,
     setShowBookmarks,
     setShowEventDetail,

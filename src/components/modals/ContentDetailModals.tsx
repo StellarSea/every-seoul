@@ -48,28 +48,70 @@ export function NewsDetailModal({
         )}
         <div className="space-y-4 text-gray-700 mb-6">
           <p className="text-lg leading-relaxed">{news.excerpt}</p>
-          <p className="leading-relaxed">
-            서울시는 이번 정책을 통해 시민들의 삶의 질을 향상시키고자 합니다.
-            관련 부서와의 협의를 통해 체계적인 계획을 수립하였으며, 단계적으로
-            추진될 예정입니다.
-          </p>
-          <h3 className="text-xl mt-6 mb-3">주요 내용</h3>
-          <ul className="list-disc list-inside space-y-2">
-            <li>시민 참여형 정책 추진으로 실효성 제고</li>
-            <li>관련 예산 확보 및 효율적 집행 계획 수립</li>
-            <li>정기적인 모니터링을 통한 정책 효과 분석</li>
-            <li>시민 의견 수렴 창구 운영</li>
-          </ul>
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-600" />
-              참고 사항
-            </h4>
-            <p className="text-sm text-gray-700">
-              자세한 내용은 강남구청 홈페이지를 참조하시거나, 구청 민원실로
-              문의하시기 바랍니다.
-            </p>
-          </div>
+          {news.weather && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-600" />
+                날씨 및 환경
+              </h4>
+              <p className="text-sm text-gray-700">{news.weather}</p>
+            </div>
+          )}
+          {news.sections?.map((section) => (
+            <section key={section.category}>
+              <h3 className="text-xl mt-6 mb-3">{section.category}</h3>
+              <ul className="space-y-3">
+                {section.highlights.map((highlight) => (
+                  <li
+                    key={`${section.category}-${highlight.title}`}
+                    className="rounded-lg border border-gray-200 p-4"
+                  >
+                    <p className="font-medium text-gray-900">
+                      {highlight.title}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                      {highlight.summary}
+                    </p>
+                    {highlight.link && (
+                      <a
+                        href={highlight.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-flex text-sm text-blue-600 hover:text-blue-700"
+                      >
+                        원문 보기
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+          {news.culturalEvents && news.culturalEvents.length > 0 && (
+            <section>
+              <h3 className="text-xl mt-6 mb-3">문화행사</h3>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {news.culturalEvents.map((event) => (
+                  <div
+                    key={`${event.title}-${event.date || ''}`}
+                    className="rounded-lg bg-gray-50 p-4"
+                  >
+                    <p className="font-medium text-gray-900">{event.title}</p>
+                    <p className="mt-1 text-sm text-gray-600">
+                      {[event.place, event.date, event.fee]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          {!news.sections?.length && !news.culturalEvents?.length && (
+            <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+              아직 상세 브리핑 항목이 없습니다.
+            </div>
+          )}
         </div>
         <div className="mt-6 flex gap-3">
           <button
