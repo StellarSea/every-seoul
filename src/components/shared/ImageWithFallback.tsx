@@ -5,10 +5,14 @@ interface ImageWithFallbackProps extends React.ImgHTMLAttributes<HTMLImageElemen
   alt: string;
 }
 
-export function ImageWithFallback({ src, alt, ...props }: ImageWithFallbackProps) {
-  const [error, setError] = useState(false);
+export function ImageWithFallback({
+  alt,
+  src,
+  ...props
+}: ImageWithFallbackProps) {
+  const [hasError, setHasError] = useState(false);
 
-  if (error) {
+  if (hasError) {
     return (
       <div className="w-full h-full bg-zinc-100 flex items-center justify-center">
         <span className="text-zinc-400 text-sm">Image unavailable</span>
@@ -17,11 +21,6 @@ export function ImageWithFallback({ src, alt, ...props }: ImageWithFallbackProps
   }
 
   return (
-    <img
-      src={src}
-      alt={alt}
-      onError={() => setError(true)}
-      {...props}
-    />
+    <img alt={alt} src={src} onError={() => setHasError(true)} {...props} />
   );
 }

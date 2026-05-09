@@ -6,7 +6,7 @@ import {
   Star,
   Users
 } from 'lucide-react';
-import type { Policy, UserPreferences } from '../../types/types';
+import type { Policy, UserPreferences } from '../../types/app';
 import { tagColorClass } from '../../utils/tagStyles';
 
 interface PolicyPageProps {

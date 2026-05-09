@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { AppTab, EmploymentStatus, UserPreferences } from '../types/types';
+import type { AppTab, EmploymentStatus, UserPreferences } from '../types/app';
 
 export function useAppState() {
   const [activeTab, setActiveTab] = useState<AppTab>('뉴스레터');

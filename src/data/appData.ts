@@ -4,7 +4,7 @@ import type {
   Newsletter,
   Policy,
   ProductPrice
-} from '../types/types';
+} from '../types/app';
 
 export const allTags: InterestTag[] = [
   { name: '부동산', color: 'orange' },

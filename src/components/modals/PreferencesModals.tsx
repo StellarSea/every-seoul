@@ -4,7 +4,7 @@ import type {
   EmploymentStatus,
   InterestTag,
   UserPreferences
-} from '../../types/types';
+} from '../../types/app';
 import { tagColorClass, tagSelectedClass } from '../../utils/tagStyles';
 import { ModalShell } from './ModalShell';
 

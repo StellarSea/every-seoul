@@ -1,7 +1,7 @@
 import { AlertCircle, Calendar, Star } from 'lucide-react';
-import { ImageWithFallback } from '../ImageWithFallback';
+import { ImageWithFallback } from '../shared/ImageWithFallback';
 import { ModalShell } from './ModalShell';
-import type { InterestTag, Newsletter, Policy } from '../../types/types';
+import type { InterestTag, Newsletter, Policy } from '../../types/app';
 import { tagColorClass } from '../../utils/tagStyles';
 
 export function NewsDetailModal({

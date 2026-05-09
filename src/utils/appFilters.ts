@@ -1,4 +1,4 @@
-import type { Newsletter, Policy, UserPreferences } from '../types/types';
+import type { Newsletter, Policy, UserPreferences } from '../types/app';
 
 export function getFilteredNewsletters(
   source: Newsletter[],

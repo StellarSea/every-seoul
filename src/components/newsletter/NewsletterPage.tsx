@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react';
-import { ImageWithFallback } from '../ImageWithFallback';
-import type { InterestTag, Newsletter } from '../../types/types';
+import { ImageWithFallback } from '../shared/ImageWithFallback';
+import type { InterestTag, Newsletter } from '../../types/app';
 import { tagColorClass } from '../../utils/tagStyles';
 
 interface NewsletterPageProps {

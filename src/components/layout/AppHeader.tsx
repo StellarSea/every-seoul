@@ -1,5 +1,5 @@
 import { Settings, Star } from 'lucide-react';
-import type { AppTab } from '../../types/types';
+import type { AppTab } from '../../types/app';
 
 interface AppHeaderProps {
   activeTab: AppTab;

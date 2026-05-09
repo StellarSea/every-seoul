@@ -9,7 +9,7 @@ import {
   Wind
 } from 'lucide-react';
 import { ModalShell } from './ModalShell';
-import type { EventDetail, ProductPrice } from '../../types/types';
+import type { EventDetail, ProductPrice } from '../../types/app';
 
 export function WeatherDetailModal({
   district,

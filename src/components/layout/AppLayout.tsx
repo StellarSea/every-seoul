@@ -9,7 +9,7 @@ import {
   Settings
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
-import type { AppTab, InterestTag } from '../../types/types';
+import type { AppTab, InterestTag } from '../../types/app';
 import { tagColorClass } from '../../utils/tagStyles';
 
 interface CategoryItem {

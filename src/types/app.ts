@@ -1,3 +1,15 @@
+export type AppTab = '뉴스레터' | '생활정보' | '맞춤정책';
+
+export type TagColor = 'orange' | 'blue' | 'green' | 'purple' | 'red';
+
+export type EmploymentStatus =
+  | ''
+  | 'employed'
+  | 'job-seeking'
+  | 'student'
+  | 'self-employed'
+  | 'etc';
+
 export interface Newsletter {
   id: number;
   title: string;
@@ -11,22 +23,10 @@ export interface Newsletter {
   excerpt: string;
 }
 
-export type AppTab = '뉴스레터' | '생활정보' | '맞춤정책';
-
-export type TagColor = 'orange' | 'blue' | 'green' | 'purple' | 'red';
-
 export interface InterestTag {
   name: string;
   color: TagColor;
 }
-
-export type EmploymentStatus =
-  | ''
-  | 'employed'
-  | 'job-seeking'
-  | 'student'
-  | 'self-employed'
-  | 'etc';
 
 export interface UserPreferences {
   age: string;

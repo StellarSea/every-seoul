@@ -1,4 +1,4 @@
-import type { TagColor } from '../types/types';
+import type { TagColor } from '../types/app';
 
 export function tagColorClass(color?: TagColor) {
   switch (color) {
