@@ -8,22 +8,27 @@ import reactPlugin from 'eslint-plugin-react';
 import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules'] },
+  {
+    ignores: ['dist', 'node_modules', 'coverage', '*.config.js']
+  },
   {
     extends: [
       js.configs.recommended,
       ...tseslint.configs.strict,
-      ...tseslint.configs.stylistic,
+      ...tseslint.configs.stylistic
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
+      ecmaVersion: 2023,
+      globals: globals.browser
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'warn'
     },
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      'react-refresh': reactRefresh
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
@@ -31,15 +36,15 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        { allowConstantExport: true }
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'warn'
     },
     settings: {
       react: {
-        version: 'detect',
-      },
-    },
+        version: 'detect'
+      }
+    }
   },
-  eslintConfigPrettier,
+  eslintConfigPrettier
 );

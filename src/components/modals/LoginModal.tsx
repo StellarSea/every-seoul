@@ -1,11 +1,15 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
+import { GoogleSignInButton } from '../auth/GoogleSignInButton';
+import type { AuthUser } from '../../store/authStore';
 
 function LoginModal({
   onClose,
+  onGoogleLogin,
   onLogin
 }: {
   onClose: () => void;
+  onGoogleLogin: (user: AuthUser) => void;
   onLogin: (id: string, pw: string) => void;
 }) {
   const [loginId, setLoginId] = useState('');
@@ -92,17 +96,7 @@ function LoginModal({
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="text-center mb-4">
               <p className="text-sm text-gray-500 mb-4">간편 로그인</p>
-              <div className="flex items-center justify-center gap-3">
-                <button className="w-12 h-12 bg-yellow-400 rounded-full hover:bg-yellow-500 transition-colors flex items-center justify-center">
-                  <span className="text-sm font-bold">K</span>
-                </button>
-                <button className="w-12 h-12 bg-green-500 rounded-full hover:bg-green-600 transition-colors flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">N</span>
-                </button>
-                <button className="w-12 h-12 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors flex items-center justify-center">
-                  <span className="text-sm font-bold">G</span>
-                </button>
-              </div>
+              <GoogleSignInButton onSuccess={onGoogleLogin} />
             </div>
           </div>
 

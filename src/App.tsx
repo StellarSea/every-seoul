@@ -36,7 +36,7 @@ import {
 
 function App() {
   const state = useAppState();
-  const { login, logout, user } = useAuthStore();
+  const { login, loginWithGoogle, logout, user } = useAuthStore();
 
   const filteredNewsletters = useMemo(
     () => getFilteredNewsletters(newsletters, state.preferences),
@@ -122,6 +122,10 @@ function App() {
       {state.showLoginModal && (
         <LoginModal
           onClose={() => state.setShowLoginModal(false)}
+          onGoogleLogin={(googleUser) => {
+            loginWithGoogle(googleUser);
+            state.setShowLoginModal(false);
+          }}
           onLogin={handleLogin}
         />
       )}

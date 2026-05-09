@@ -1,10 +1,11 @@
 import { Settings, Star } from 'lucide-react';
 import type { AppTab } from '../../types/app';
+import type { AuthUser } from '../../store/authStore';
 
 interface AppHeaderProps {
   activeTab: AppTab;
   bookmarkCount: number;
-  user: string | null;
+  user: AuthUser | null;
   onTabChange: (tab: AppTab) => void;
   onOpenBookmarks: () => void;
   onOpenLogin: () => void;
@@ -66,7 +67,14 @@ export function AppHeader({
             </button>
             {user ? (
               <>
-                <span className="text-sm">{user}님</span>
+                {user.picture && (
+                  <img
+                    src={user.picture}
+                    alt=""
+                    className="w-7 h-7 rounded-full border border-white/30"
+                  />
+                )}
+                <span className="text-sm">{user.name}님</span>
                 <button
                   onClick={onLogout}
                   className="hover:bg-white/10 px-4 py-1.5 rounded text-sm transition-colors"

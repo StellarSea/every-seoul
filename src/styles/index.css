@@ -1,5 +1,4 @@
-@import 'tailwindcss' source(none);
-@source '../**/*.{js,ts,jsx,tsx}';
+@import 'tailwindcss';
 
 :root {
   font-family:
@@ -30,4 +29,18 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+button,
+[role='button'],
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'],
+input:disabled {
+  cursor: not-allowed;
 }
