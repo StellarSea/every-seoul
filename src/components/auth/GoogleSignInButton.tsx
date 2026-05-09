@@ -70,8 +70,8 @@ export function GoogleSignInButton({ onSuccess }: GoogleSignInButtonProps) {
   if (!clientId) {
     return (
       <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-center text-xs text-gray-500">
-        `.env`에 VITE_GOOGLE_CLIENT_ID를 설정하면 Google 로그인을 사용할 수
-        있습니다.
+        배포 환경 설정에 Google 클라이언트 ID를 설정하면 Google 로그인을 사용할
+        수 있습니다.
       </div>
     );
   }

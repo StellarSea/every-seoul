@@ -40,9 +40,7 @@ declare global {
   }
 }
 
-export function getGoogleClientId() {
-  return import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-}
+export { getGoogleClientId } from '../utils/runtimeConfig';
 
 export function loadGoogleIdentityScript() {
   return new Promise<void>((resolve, reject) => {

@@ -1,0 +1,2 @@
+window.__EVERY_SEOUL_RUNTIME_CONFIG__ =
+  window.__EVERY_SEOUL_RUNTIME_CONFIG__ || {};

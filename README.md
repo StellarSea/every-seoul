@@ -14,10 +14,10 @@ pnpm dev
 
 ## Environment
 
-| Name                    | Description                                                      |
-| ----------------------- | ---------------------------------------------------------------- |
-| `VITE_API_BASE_URL`     | Backend API base URL. Local default: `http://localhost:8000/api` |
-| `VITE_GOOGLE_CLIENT_ID` | Google OAuth web client ID                                       |
+| Name                    | Description                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`     | Backend API base URL for local development. Default: `http://localhost:8000/api` |
+| `VITE_GOOGLE_CLIENT_ID` | Google OAuth web client ID for local development                                 |
 
 ## Verification
 
@@ -29,13 +29,11 @@ pnpm format:check
 ## Docker Production Build
 
 The frontend image builds static assets and serves them with Nginx.
-Nginx also proxies `/api/*` to the backend service in Docker Compose.
+In production, the container writes runtime config into `/env.js` at startup,
+so the frontend reads configuration without rebuilds.
 
 ```bash
-docker build \
-  --build-arg VITE_API_BASE_URL=/api \
-  --build-arg VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com \
-  -t every-seoul-web .
+docker build -t every-seoul-web .
 ```
 
 ## Full Stack Docker Compose
@@ -63,7 +61,8 @@ https://your-domain.com
 ```
 
 - Set `PUBLIC_WEB_ORIGIN` in `.env.production` to the exact production origin, including `https://`.
-- Set the same `GOOGLE_CLIENT_ID` in `.env.production`.
+- Set `API_BASE_URL` to the path the frontend should call, usually `/api`.
+- Set the same `GOOGLE_CLIENT_ID` in `.env.production`. The frontend container reads it at runtime and writes `/env.js`.
 - Replace `POSTGRES_PASSWORD` with a strong unique password.
 - Set real API keys if these features are used:
 
@@ -89,7 +88,7 @@ ENABLE_SCHEDULER=true
 pnpm check
 python -m compileall ..\every-seoul-backend\app
 python -m pytest -s ..\every-seoul-backend\tests
-docker compose --env-file .env.production -f compose.prod.yml config
+docker compose -f compose.prod.yml config
 ```
 
 - After deploy, check:
@@ -103,19 +102,24 @@ curl https://your-domain.com/api/health
 - Watch logs after first deploy:
 
 ```bash
-docker compose --env-file .env.production -f compose.prod.yml logs -f
+docker compose -f compose.prod.yml logs -f
 ```
 
-Create production env files:
+Deploy with environment variables (no local `.env.production` file needed):
 
 ```bash
-copy .env.production.example .env.production
+export POSTGRES_PASSWORD=change-this-strong-password
+export GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
+export PUBLIC_WEB_ORIGIN=https://your-domain.com
+export SEOUL_OPEN_API_KEY=your-api-key
+export OPENROUTER_API_KEY=your-api-key
+docker compose -f compose.prod.yml up --build -d
 ```
 
-Edit `.env.production`, then run:
+Or as a single command:
 
 ```bash
-docker compose --env-file .env.production -f compose.prod.yml up --build -d
+POSTGRES_PASSWORD=xxx GOOGLE_CLIENT_ID=yyy PUBLIC_WEB_ORIGIN=https://your-domain.com docker compose -f compose.prod.yml up --build -d
 ```
 
 Health checks:
@@ -128,7 +132,7 @@ curl http://localhost/api/health
 Stop the stack:
 
 ```bash
-docker compose --env-file .env.production -f compose.prod.yml down
+docker compose -f compose.prod.yml down
 ```
 
 ## Google OAuth Setup
