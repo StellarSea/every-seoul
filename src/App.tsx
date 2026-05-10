@@ -156,6 +156,7 @@ function App() {
         selectedTags={state.selectedTags}
         onEventClick={state.openEvent}
         onOpenTagManagement={() => state.setShowTagManagement(true)}
+        onPolicyClick={state.openPolicy}
         onProductClick={state.openProduct}
       >
         {state.activeTab === '뉴스레터' && (

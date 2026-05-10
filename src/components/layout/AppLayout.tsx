@@ -72,6 +72,7 @@ interface AppLayoutProps {
   selectedTags: string[];
   onEventClick: (eventName: string) => void;
   onOpenTagManagement: () => void;
+  onPolicyClick: (policyId: number) => void;
   onProductClick: (productName: string) => void;
 }
 
@@ -89,6 +90,7 @@ export function AppLayout({
   selectedTags,
   onEventClick,
   onOpenTagManagement,
+  onPolicyClick,
   onProductClick
 }: AppLayoutProps) {
   const scrollToSection = (sectionId: string) => {
@@ -287,9 +289,10 @@ export function AppLayout({
                     </p>
                   )}
                   {policies.slice(0, 2).map((policy) => (
-                    <div
+                    <button
                       key={policy.id}
-                      className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500"
+                      onClick={() => onPolicyClick(policy.id)}
+                      className="w-full p-3 text-left bg-blue-50 rounded-lg border-l-4 border-blue-500 hover:bg-blue-100 transition-colors"
                     >
                       <div className="flex items-center gap-1 mb-1">
                         <DollarSign className="w-3 h-3 text-blue-600" />
@@ -299,7 +302,7 @@ export function AppLayout({
                       <p className="text-xs text-gray-500 mt-1">
                         {policy.deadline}
                       </p>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
