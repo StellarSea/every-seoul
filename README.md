@@ -59,10 +59,11 @@ src/styles/index.css         전역 CSS와 Tailwind 진입점
 
 ## 백엔드 연동
 
-로컬 백엔드 저장소는 보통 다음 위치에 둡니다.
+로컬 백엔드 저장소는 보통 이 저장소와 같은 상위 폴더 아래에 둡니다.
 
 ```txt
-C:\JaeEonYu\dev\every-seoul-backend
+every-seoul
+every-seoul-backend
 ```
 
 백엔드 API의 기본 로컬 주소는 <http://localhost:8000/api> 입니다. 프론트엔드에서 다른 주소를 호출해야 하면 `.env`의 `VITE_API_BASE_URL` 값을 변경합니다.
@@ -99,8 +100,8 @@ docker build -t every-seoul-web .
 `compose.prod.yml`은 프론트엔드, 백엔드, PostgreSQL을 함께 실행합니다. 백엔드 저장소가 이 저장소와 같은 상위 폴더 아래에 있다고 가정합니다.
 
 ```txt
-C:\JaeEonYu\dev\every-seoul
-C:\JaeEonYu\dev\every-seoul-backend
+every-seoul
+every-seoul-backend
 ```
 
 환경 변수를 지정해 실행합니다.
