@@ -329,7 +329,7 @@ export function EventDetailModal({
               </div>
             </div>
           )}
-          <Section title="행사 소개">
+          <Section title="소식 내용">
             <p className="whitespace-pre-line break-words text-sm text-gray-700 leading-relaxed">
               {event.description}
             </p>

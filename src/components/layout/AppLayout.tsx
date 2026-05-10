@@ -312,7 +312,7 @@ export function AppLayout({
                 </div>
               </div>
               <div>
-                <h4 className="text-sm mb-3">이벤트 안내</h4>
+                <h4 className="text-sm mb-3">지역 소식 안내</h4>
                 <div className="space-y-2">
                   {events.length === 0 && (
                     <p className="rounded bg-gray-50 p-2 text-xs text-gray-500">
