@@ -4,6 +4,7 @@ import {
   Car,
   CloudRain,
   Droplets,
+  ExternalLink,
   Home,
   Wind
 } from 'lucide-react';
@@ -258,6 +259,7 @@ export function EventDetailModal({
   const registrationPercent = hasRegistrationLimit
     ? Math.min((event.registered / event.capacity) * 100, 100)
     : 0;
+  const locationDetailUrl = toHttpUrl(event.locationDetail);
 
   return (
     <ModalShell maxWidth="max-w-3xl" onClose={onClose}>
@@ -281,8 +283,24 @@ export function EventDetailModal({
         </div>
         <div className="space-y-6">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium mb-2">상세 장소</h3>
-            <p className="text-sm text-gray-700">{event.locationDetail}</p>
+            <h3 className="text-sm font-medium mb-2">
+              {locationDetailUrl ? '원문 공지' : '상세 장소'}
+            </h3>
+            {locationDetailUrl ? (
+              <a
+                href={locationDetailUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+              >
+                공지 페이지 열기
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            ) : (
+              <p className="whitespace-pre-line break-words text-sm text-gray-700">
+                {event.locationDetail}
+              </p>
+            )}
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -332,6 +350,17 @@ export function EventDetailModal({
       </div>
     </ModalShell>
   );
+}
+
+function toHttpUrl(value: string) {
+  const trimmedValue = value.trim();
+  if (!/^https?:\/\//i.test(trimmedValue)) return null;
+
+  try {
+    return new URL(trimmedValue).toString();
+  } catch {
+    return null;
+  }
 }
 
 function AirCard({
