@@ -260,6 +260,13 @@ export function EventDetailModal({
     ? Math.min((event.registered / event.capacity) * 100, 100)
     : 0;
   const locationDetailUrl = toHttpUrl(event.locationDetail);
+  const contactUrl = toHttpUrl(event.contact);
+  const programItems = event.program.filter(
+    (item) => item.time.trim() || item.content.trim()
+  );
+  const benefits = event.benefits.filter((item) => item.trim());
+  const requirements = event.requirements.filter((item) => item.trim());
+  const hasRegistrationStatus = hasRegistrationLimit || event.registered > 0;
 
   return (
     <ModalShell maxWidth="max-w-3xl" onClose={onClose}>
@@ -302,49 +309,73 @@ export function EventDetailModal({
               </p>
             )}
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">신청 현황</h3>
-              <span className="text-sm text-gray-600">
-                {hasRegistrationLimit
-                  ? `${event.registered} / ${event.capacity}명`
-                  : '정원 정보 확인 필요'}
-              </span>
+          {hasRegistrationStatus && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">신청 현황</h3>
+                <span className="text-sm text-gray-600">
+                  {hasRegistrationLimit
+                    ? `${event.registered} / ${event.capacity}명`
+                    : `${event.registered}명 신청`}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full"
+                  style={{
+                    width: `${registrationPercent}%`
+                  }}
+                />
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full"
-                style={{
-                  width: `${registrationPercent}%`
-                }}
-              />
-            </div>
-          </div>
+          )}
           <Section title="행사 소개">
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="whitespace-pre-line break-words text-sm text-gray-700 leading-relaxed">
               {event.description}
             </p>
           </Section>
-          <Section title="프로그램 일정">
-            <div className="space-y-2">
-              {event.program.map((item) => (
-                <div
-                  key={`${item.time}-${item.content}`}
-                  className="flex gap-4 p-3 bg-gray-50 rounded"
-                >
-                  <span className="text-sm font-medium text-blue-600 min-w-[120px]">
-                    {item.time}
-                  </span>
-                  <span className="text-sm text-gray-700">{item.content}</span>
-                </div>
-              ))}
-            </div>
-          </Section>
-          <BulletList title="참여 혜택" items={event.benefits} />
-          <BulletList title="참여 자격" items={event.requirements} />
+          {programItems.length > 0 && (
+            <Section title="프로그램 일정">
+              <div className="space-y-2">
+                {programItems.map((item) => (
+                  <div
+                    key={`${item.time}-${item.content}`}
+                    className="flex gap-4 p-3 bg-gray-50 rounded"
+                  >
+                    <span className="text-sm font-medium text-blue-600 min-w-[120px]">
+                      {item.time}
+                    </span>
+                    <span className="text-sm text-gray-700">
+                      {item.content}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+          {benefits.length > 0 && (
+            <BulletList title="참여 혜택" items={benefits} />
+          )}
+          {requirements.length > 0 && (
+            <BulletList title="참여 자격" items={requirements} />
+          )}
           <div className="bg-blue-50 rounded-lg p-4">
             <h3 className="text-sm font-medium mb-2">문의처</h3>
-            <p className="text-sm text-gray-700">{event.contact}</p>
+            {contactUrl ? (
+              <a
+                href={contactUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+              >
+                문의 페이지 열기
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            ) : (
+              <p className="whitespace-pre-line break-words text-sm text-gray-700">
+                {event.contact}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -400,21 +431,27 @@ function DetailGrid({
   return (
     <div>
       <h3 className="text-lg mb-4">{title}</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {items.map(([name, description, meta]) => (
-          <div
-            key={`${name}-${description}`}
-            className="bg-gray-50 rounded-lg p-4"
-          >
-            <h4 className="font-medium mb-2">{name}</h4>
-            <p className="text-sm text-gray-600 mb-2">{description}</p>
-            <div className="flex items-center gap-2 text-sm">
-              {icon}
-              <span className="text-gray-700">{meta}</span>
+      {items.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {items.map(([name, description, meta]) => (
+            <div
+              key={`${name}-${description}`}
+              className="bg-gray-50 rounded-lg p-4"
+            >
+              <h4 className="font-medium mb-2">{name}</h4>
+              <p className="text-sm text-gray-600 mb-2">{description}</p>
+              <div className="flex items-center gap-2 text-sm">
+                {icon}
+                <span className="text-gray-700">{meta}</span>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-lg bg-gray-50 p-4 text-sm text-gray-500">
+          현재 표시할 정보가 없습니다.
+        </p>
+      )}
     </div>
   );
 }

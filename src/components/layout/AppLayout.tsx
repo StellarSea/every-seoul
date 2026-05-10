@@ -294,9 +294,14 @@ export function AppLayout({
                       onClick={() => onPolicyClick(policy.id)}
                       className="w-full p-3 text-left bg-blue-50 rounded-lg border-l-4 border-blue-500 hover:bg-blue-100 transition-colors"
                     >
-                      <div className="flex items-center gap-1 mb-1">
-                        <DollarSign className="w-3 h-3 text-blue-600" />
-                        <p className="text-xs text-blue-700">{policy.status}</p>
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1">
+                          <DollarSign className="w-3 h-3 text-blue-600" />
+                          <p className="text-xs text-blue-700">
+                            {policy.status}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-3 h-3 text-blue-500" />
                       </div>
                       <p className="text-sm text-gray-700">{policy.title}</p>
                       <p className="text-xs text-gray-500 mt-1">
@@ -309,7 +314,12 @@ export function AppLayout({
               <div>
                 <h4 className="text-sm mb-3">이벤트 안내</h4>
                 <div className="space-y-2">
-                  {events.map((event) => (
+                  {events.length === 0 && (
+                    <p className="rounded bg-gray-50 p-2 text-xs text-gray-500">
+                      표시할 이벤트가 없습니다
+                    </p>
+                  )}
+                  {events.slice(0, 3).map((event) => (
                     <button
                       key={event.title}
                       onClick={() => onEventClick(event.title)}
