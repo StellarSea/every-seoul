@@ -104,26 +104,22 @@ every-seoul
 every-seoul-backend
 ```
 
-환경 변수를 지정해 실행합니다.
+배포 환경 변수는 템플릿을 복사해 별도 파일로 관리합니다. 실제 `.env.production`은 Git에 커밋하지 않습니다.
 
 ```bash
-POSTGRES_PASSWORD=change-this-strong-password \
-GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com \
-PUBLIC_WEB_ORIGIN=https://your-domain.com \
-SEOUL_OPEN_API_KEY=your-api-key \
-OPENROUTER_API_KEY=your-api-key \
-docker compose -f compose.prod.yml up --build -d
+cp .env.production.example .env.production
 ```
 
-Windows PowerShell에서는 다음처럼 설정한 뒤 실행할 수 있습니다.
+Windows PowerShell에서는 다음 명령을 사용합니다.
 
 ```powershell
-$env:POSTGRES_PASSWORD = "change-this-strong-password"
-$env:GOOGLE_CLIENT_ID = "your-google-oauth-client-id.apps.googleusercontent.com"
-$env:PUBLIC_WEB_ORIGIN = "https://your-domain.com"
-$env:SEOUL_OPEN_API_KEY = "your-api-key"
-$env:OPENROUTER_API_KEY = "your-api-key"
-docker compose -f compose.prod.yml up --build -d
+Copy-Item .env.production.example .env.production
+```
+
+`.env.production`에서 `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `PUBLIC_WEB_ORIGIN`을 실제 값으로 바꾼 뒤 실행합니다.
+
+```bash
+docker compose --env-file .env.production -f compose.prod.yml up --build -d
 ```
 
 상태 확인:
@@ -136,13 +132,13 @@ curl http://localhost/api/health
 로그 확인:
 
 ```bash
-docker compose -f compose.prod.yml logs -f
+docker compose --env-file .env.production -f compose.prod.yml logs -f
 ```
 
 중지:
 
 ```bash
-docker compose -f compose.prod.yml down
+docker compose --env-file .env.production -f compose.prod.yml down
 ```
 
 ## 실제 배포 전 확인 사항
@@ -151,7 +147,7 @@ docker compose -f compose.prod.yml down
 - 실제 도메인을 서버에 연결합니다.
 - HTTPS를 적용합니다. 프로덕션 Google 로그인은 일반 HTTP로 제공하지 않습니다.
 - 프로덕션 도메인용 Google OAuth 웹 클라이언트 ID를 준비하거나 기존 클라이언트에 프로덕션 원본을 추가합니다.
-- `PUBLIC_WEB_ORIGIN`을 `https://`를 포함한 정확한 프로덕션 원본으로 설정합니다.
+- `.env.production`을 만들고 `PUBLIC_WEB_ORIGIN`을 `https://`를 포함한 정확한 프로덕션 원본으로 설정합니다.
 - `API_BASE_URL`을 프론트엔드가 호출할 API 경로로 설정합니다. 일반적으로 `/api`를 사용합니다.
 - `POSTGRES_PASSWORD`를 강한 고유 비밀번호로 바꿉니다.
 - 필요한 경우 `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 설정합니다.
@@ -166,7 +162,7 @@ docker compose -f compose.prod.yml down
 pnpm check
 python -m compileall ..\every-seoul-backend\app
 python -m pytest -s ..\every-seoul-backend\tests
-docker compose -f compose.prod.yml config
+docker compose --env-file .env.production -f compose.prod.yml config
 ```
 
 배포 후에는 실제 Google 계정으로 로그인과 사용자 설정 저장이 정상 동작하는지 확인합니다.
