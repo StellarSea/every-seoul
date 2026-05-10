@@ -157,6 +157,10 @@ export function PolicyDetailModal({
   policy: Policy;
   onClose: () => void;
 }) {
+  const hasDistinctSupportDetail =
+    normalizePolicyText(policy.supportDetail) !==
+    normalizePolicyText(policy.description);
+
   return (
     <ModalShell onClose={onClose}>
       <div className="p-8">
@@ -183,12 +187,14 @@ export function PolicyDetailModal({
           <InfoBox label="분야" value={policy.category} />
         </div>
         <div className="space-y-6">
-          <section>
-            <h3 className="text-lg mb-3">지원 내용</h3>
-            <p className="whitespace-pre-line break-words text-sm text-gray-700 leading-relaxed">
-              {policy.supportDetail}
-            </p>
-          </section>
+          {hasDistinctSupportDetail && (
+            <section>
+              <h3 className="text-lg mb-3">지원 내용</h3>
+              <p className="whitespace-pre-line break-words text-sm text-gray-700 leading-relaxed">
+                {policy.supportDetail}
+              </p>
+            </section>
+          )}
           <section>
             <h3 className="text-lg mb-3">확인 절차</h3>
             <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
@@ -218,6 +224,10 @@ export function PolicyDetailModal({
       </div>
     </ModalShell>
   );
+}
+
+function normalizePolicyText(value: string) {
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 export function BookmarksModal({
