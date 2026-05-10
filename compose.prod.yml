@@ -44,6 +44,7 @@ services:
       ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-false}
       CORS_ORIGINS: '${PUBLIC_WEB_ORIGIN:?Set PUBLIC_WEB_ORIGIN in your production env file}'
       GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in your production env file}'
+      ADMIN_API_KEY: '${ADMIN_API_KEY:?Set ADMIN_API_KEY in your production env file}'
       SEOUL_OPEN_API_KEY: '${SEOUL_OPEN_API_KEY:?Set SEOUL_OPEN_API_KEY in your production env file}'
       OPENROUTER_API_KEY: '${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY in your production env file}'
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}

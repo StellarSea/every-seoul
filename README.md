@@ -110,7 +110,9 @@ every-seoul-backend
 cp .env.production.example .env.production
 ```
 
-`.env.production`에서 `PUBLIC_WEB_HOST`, `PUBLIC_WEB_ORIGIN`, `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 바꾼 뒤 실행합니다.
+`.env.production`에서 `PUBLIC_WEB_HOST`, `PUBLIC_WEB_ORIGIN`, `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `ADMIN_API_KEY`, `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 바꾼 뒤 실행합니다.
+
+`ADMIN_API_KEY`는 뉴스레터 수집 파이프라인을 수동 실행할 때 쓰는 관리자 토큰입니다. 충분히 긴 임의 문자열로 설정하고 Git에 커밋하지 않습니다.
 
 ```bash
 docker compose --env-file .env.production -f compose.prod.yml up --build -d
@@ -146,6 +148,47 @@ Invoke-WebRequest https://everyseoul.com/health
 Invoke-WebRequest https://everyseoul.com/api/health
 ```
 
+## 뉴스레터 수집 파이프라인
+
+뉴스레터 탭의 "오늘의 강남구 요약"은 백엔드 DB에 저장된 뉴스레터를 표시합니다. 프론트엔드의 새로고침 버튼은 이미 저장된 최신 데이터를 다시 불러오며, 새 뉴스레터를 직접 생성하지는 않습니다.
+
+백엔드는 `ENABLE_SCHEDULER=true`일 때 매일 `04:00 KST`에 서울 RSS, 문화행사, 생활 센서 데이터를 수집하고 자치구별 브리핑을 생성합니다.
+
+배포 직후 바로 데이터를 채우고 싶다면 관리자 토큰으로 수동 실행합니다.
+
+```bash
+curl -X POST http://localhost/api/admin/pipeline/trigger \
+  -H "X-Admin-Token: $ADMIN_API_KEY"
+```
+
+도메인으로 호출할 수도 있습니다.
+
+```bash
+curl -X POST https://everyseoul.com/api/admin/pipeline/trigger \
+  -H "X-Admin-Token: $ADMIN_API_KEY"
+```
+
+PowerShell에서는 다음처럼 실행합니다.
+
+```powershell
+Invoke-WebRequest `
+  -Method Post `
+  -Uri https://everyseoul.com/api/admin/pipeline/trigger `
+  -Headers @{"X-Admin-Token" = $env:ADMIN_API_KEY}
+```
+
+실행 후 API 로그에서 진행 상황을 확인합니다.
+
+```bash
+docker compose --env-file .env.production -f compose.prod.yml logs -f api
+```
+
+생성 결과는 다음처럼 확인할 수 있습니다.
+
+```bash
+curl "http://localhost/api/newsletters/today?district=강남구"
+```
+
 ## 실제 배포 전 확인 사항
 
 - VPS, 클라우드 VM, Render, Fly.io, Railway 등 Docker 실행이 가능한 배포 대상을 정합니다.
@@ -155,6 +198,7 @@ Invoke-WebRequest https://everyseoul.com/api/health
 - `.env.production`을 만들고 `PUBLIC_WEB_HOST=everyseoul.com`, `PUBLIC_WEB_ORIGIN=https://everyseoul.com`으로 설정합니다.
 - `API_BASE_URL`을 프론트엔드가 호출할 API 경로로 설정합니다. 일반적으로 `/api`를 사용합니다.
 - `POSTGRES_PASSWORD`를 강한 고유 비밀번호로 바꿉니다.
+- `ADMIN_API_KEY`를 강한 고유 토큰으로 바꿉니다.
 - 필요한 경우 `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 설정합니다.
 - 운영 환경에서 뉴스레터 수집을 자동 실행하려면 `ENABLE_SCHEDULER=true`로 설정합니다.
 - 초기 소규모 배포에서는 `CREATE_DB_TABLES=true`를 사용할 수 있지만, 운영이 안정되면 마이그레이션을 사용하고 `CREATE_DB_TABLES=false`로 전환하는 편이 좋습니다.
