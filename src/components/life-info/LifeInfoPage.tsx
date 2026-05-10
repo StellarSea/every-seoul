@@ -6,25 +6,46 @@ import {
   Droplets,
   Wind
 } from 'lucide-react';
+import type { LifeInfo } from '../../types/app';
 
 interface LifeInfoPageProps {
   district: string;
+  error: string;
+  lifeInfo: LifeInfo | null;
+  loading: boolean;
   onOpenTraffic: () => void;
   onOpenWeather: () => void;
 }
 
 export function LifeInfoPage({
   district,
+  error,
+  lifeInfo,
+  loading,
   onOpenTraffic,
   onOpenWeather
 }: LifeInfoPageProps) {
+  if (loading) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+        생활정보를 불러오는 중입니다.
+      </div>
+    );
+  }
+
+  if (error || !lifeInfo) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {error || '생활정보를 불러오지 못했습니다.'}
+      </div>
+    );
+  }
+
   return (
     <>
       <div id="life-info-top">
         <h2 className="text-xl mb-1">오늘의 생활정보</h2>
-        <p className="text-sm text-gray-500">
-          2026년 4월 11일 토요일 오전 10:02 기준
-        </p>
+        <p className="text-sm text-gray-500">{lifeInfo.generatedAt}</p>
       </div>
 
       <article
@@ -38,7 +59,7 @@ export function LifeInfoPage({
               <h3 className="text-lg">날씨 · 환경</h3>
             </div>
             <p className="text-sm text-gray-500">
-              서울시 {district || '강남구'} 기준 날씨 정보를 제공합니다
+              {lifeInfo.weatherSummary || `서울시 ${district} 기준 날씨 정보`}
             </p>
           </div>
           <button
@@ -53,43 +74,42 @@ export function LifeInfoPage({
             <div className="flex items-start justify-between mb-4">
               <div>
                 <p className="text-sm text-gray-600 mb-1">현재 날씨</p>
-                <span className="text-5xl">14°C</span>
+                <span className="text-5xl">{lifeInfo.temperature}</span>
                 <p className="text-sm text-gray-600 mt-2">
-                  체감온도 12°C · 흐림
+                  체감온도 {lifeInfo.feelsLike} · {lifeInfo.condition}
                 </p>
               </div>
               <CloudRain className="w-16 h-16 text-blue-400" />
             </div>
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-blue-200">
-              <Metric label="습도" value="62%" />
-              <Metric label="바람" value="남서 3m/s" />
-              <Metric label="강수확률" value="30%" />
+              {lifeInfo.weatherMetrics.slice(0, 3).map((metric) => (
+                <Metric
+                  key={metric.label}
+                  label={metric.label}
+                  value={metric.value}
+                />
+              ))}
             </div>
           </div>
           <div>
             <h4 className="text-sm mb-3">대기질 정보</h4>
             <div className="space-y-3">
-              <AirQuality
-                icon={<Wind className="w-5 h-5 text-green-600" />}
-                label="미세먼지 (PM10)"
-                status="좋음"
-                value="32㎍/m³"
-                tone="green"
-              />
-              <AirQuality
-                icon={<Wind className="w-5 h-5 text-green-600" />}
-                label="초미세먼지 (PM2.5)"
-                status="좋음"
-                value="18㎍/m³"
-                tone="green"
-              />
-              <AirQuality
-                icon={<Droplets className="w-5 h-5 text-blue-600" />}
-                label="오존 (O₃)"
-                status="보통"
-                value="0.045ppm"
-                tone="blue"
-              />
+              {lifeInfo.airQuality.slice(0, 3).map((metric) => (
+                <AirQuality
+                  key={metric.label}
+                  icon={
+                    metric.label.includes('오존') ? (
+                      <Droplets className="w-5 h-5 text-blue-600" />
+                    ) : (
+                      <Wind className="w-5 h-5 text-green-600" />
+                    )
+                  }
+                  label={metric.label}
+                  status={metric.status}
+                  value={metric.value}
+                  tone={metric.tone}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -119,15 +139,13 @@ export function LifeInfoPage({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <InfoPanel
             title="주요 도로 소통 상황"
-            rows={['강남대로: 원활', '올림픽대로: 서행', '경부고속도로: 정체']}
+            rows={lifeInfo.roads.map((row) => `${row.label}: ${row.meta}`)}
           />
           <InfoPanel
             title="주요 경제 지표"
-            rows={[
-              'USD 1,320.50원 ▲2.30',
-              'KOSPI 2,645.32 ▲15.43',
-              '생활물가 전주 대비 +1.8%'
-            ]}
+            rows={lifeInfo.economy.map((row) =>
+              `${row.label} ${row.value} ${row.meta || ''}`.trim()
+            )}
           />
         </div>
       </article>
@@ -141,18 +159,19 @@ export function LifeInfoPage({
           <h3 className="text-lg">재난 · 안전</h3>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-green-50 rounded-lg p-4">
-            <p className="text-sm text-green-700 mb-1">안전 알림</p>
-            <p className="text-sm text-gray-700">
-              현재 발효 중인 특보가 없습니다.
-            </p>
-          </div>
-          <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-sm text-blue-700 mb-1">생활 안내</p>
-            <p className="text-sm text-gray-700">
-              우천 예보에 따라 우산을 준비하세요.
-            </p>
-          </div>
+          {lifeInfo.safetyAlerts.map((notice, index) => (
+            <div
+              key={notice.title}
+              className={`${index === 0 ? 'bg-green-50' : 'bg-blue-50'} rounded-lg p-4`}
+            >
+              <p
+                className={`mb-1 text-sm ${index === 0 ? 'text-green-700' : 'text-blue-700'}`}
+              >
+                {notice.title}
+              </p>
+              <p className="text-sm text-gray-700">{notice.description}</p>
+            </div>
+          ))}
         </div>
       </article>
     </>

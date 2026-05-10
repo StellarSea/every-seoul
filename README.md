@@ -47,7 +47,7 @@ src/components/modals        모달 UI
 src/components/shared        작은 재사용 UI
 src/components/auth          인증 UI와 Google 로그인
 src/auth                     인증 연동 헬퍼
-src/data                     정적 목업 데이터
+src/data                     태그, 자치구 등 정적 선택지
 src/hooks                    상태를 가진 앱 훅
 src/store                    Zustand 스토어
 src/types                    공용 타입
@@ -82,7 +82,7 @@ http://127.0.0.1:5173
 프로덕션 배포 시에는 실제 도메인도 추가합니다.
 
 ```txt
-https://your-domain.com
+https://everyseoul.com
 ```
 
 같은 Google 클라이언트 ID를 프론트엔드와 백엔드 환경 변수에 설정합니다. 현재 프론트엔드는 화면 표시와 세션 상태를 위해 Google ID 토큰을 파싱합니다. 실제 프로덕션 인증에서는 이 ID 토큰을 백엔드로 보내 서버에서 검증한 뒤 세션을 생성해야 합니다.
@@ -97,7 +97,7 @@ docker build -t every-seoul-web .
 
 ## 전체 스택 Docker Compose
 
-`compose.prod.yml`은 프론트엔드, 백엔드, PostgreSQL을 함께 실행합니다. 백엔드 저장소가 이 저장소와 같은 상위 폴더 아래에 있다고 가정합니다.
+`compose.prod.yml`은 Caddy, 프론트엔드, 백엔드, PostgreSQL을 함께 실행합니다. Caddy가 `80`, `443` 포트를 열고 Let's Encrypt 인증서를 자동 발급합니다. 백엔드 저장소가 이 저장소와 같은 상위 폴더 아래에 있다고 가정합니다.
 
 ```txt
 every-seoul
@@ -110,16 +110,22 @@ every-seoul-backend
 cp .env.production.example .env.production
 ```
 
-Windows PowerShell에서는 다음 명령을 사용합니다.
-
-```powershell
-Copy-Item .env.production.example .env.production
-```
-
-`.env.production`에서 `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `PUBLIC_WEB_ORIGIN`을 실제 값으로 바꾼 뒤 실행합니다.
+`.env.production`에서 `PUBLIC_WEB_HOST`, `PUBLIC_WEB_ORIGIN`, `POSTGRES_PASSWORD`, `GOOGLE_CLIENT_ID`, `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 바꾼 뒤 실행합니다.
 
 ```bash
 docker compose --env-file .env.production -f compose.prod.yml up --build -d
+docker compose --env-file .env.production -f compose.prod.yml logs -f
+docker compose --env-file .env.production -f compose.prod.yml down
+```
+
+Windows PowerShell에서도 같은 Compose 파일을 사용할 수 있습니다.
+
+```powershell
+Copy-Item .env.production.example .env.production
+notepad .env.production
+docker compose --env-file .env.production -f compose.prod.yml up --build -d
+docker compose --env-file .env.production -f compose.prod.yml logs -f
+docker compose --env-file .env.production -f compose.prod.yml down
 ```
 
 상태 확인:
@@ -127,31 +133,30 @@ docker compose --env-file .env.production -f compose.prod.yml up --build -d
 ```bash
 curl http://localhost/health
 curl http://localhost/api/health
+curl https://everyseoul.com/health
+curl https://everyseoul.com/api/health
 ```
 
-로그 확인:
+PowerShell에서 상태를 확인할 때는 다음 명령을 사용할 수 있습니다.
 
-```bash
-docker compose --env-file .env.production -f compose.prod.yml logs -f
-```
-
-중지:
-
-```bash
-docker compose --env-file .env.production -f compose.prod.yml down
+```powershell
+Invoke-WebRequest http://localhost/health
+Invoke-WebRequest http://localhost/api/health
+Invoke-WebRequest https://everyseoul.com/health
+Invoke-WebRequest https://everyseoul.com/api/health
 ```
 
 ## 실제 배포 전 확인 사항
 
 - VPS, 클라우드 VM, Render, Fly.io, Railway 등 Docker 실행이 가능한 배포 대상을 정합니다.
 - 실제 도메인을 서버에 연결합니다.
-- HTTPS를 적용합니다. 프로덕션 Google 로그인은 일반 HTTP로 제공하지 않습니다.
+- 서버의 80/443 포트를 열고 도메인의 A 레코드가 서버를 가리키게 합니다. compose의 Caddy가 HTTPS를 자동 적용합니다.
 - 프로덕션 도메인용 Google OAuth 웹 클라이언트 ID를 준비하거나 기존 클라이언트에 프로덕션 원본을 추가합니다.
-- `.env.production`을 만들고 `PUBLIC_WEB_ORIGIN`을 `https://`를 포함한 정확한 프로덕션 원본으로 설정합니다.
+- `.env.production`을 만들고 `PUBLIC_WEB_HOST=everyseoul.com`, `PUBLIC_WEB_ORIGIN=https://everyseoul.com`으로 설정합니다.
 - `API_BASE_URL`을 프론트엔드가 호출할 API 경로로 설정합니다. 일반적으로 `/api`를 사용합니다.
 - `POSTGRES_PASSWORD`를 강한 고유 비밀번호로 바꿉니다.
 - 필요한 경우 `SEOUL_OPEN_API_KEY`, `OPENROUTER_API_KEY`를 실제 값으로 설정합니다.
-- 운영 환경에서 스케줄러를 실행할지 결정하고 `ENABLE_SCHEDULER` 값을 설정합니다.
+- 운영 환경에서 뉴스레터 수집을 자동 실행하려면 `ENABLE_SCHEDULER=true`로 설정합니다.
 - 초기 소규모 배포에서는 `CREATE_DB_TABLES=true`를 사용할 수 있지만, 운영이 안정되면 마이그레이션을 사용하고 `CREATE_DB_TABLES=false`로 전환하는 편이 좋습니다.
 - `postgres_data` Docker 볼륨을 백업하거나 관리형 PostgreSQL 사용을 검토합니다.
 - 방화벽은 필요한 포트만 열어 둡니다. 이 compose 구성에서는 HTTP/HTTPS만 외부에 노출하고 PostgreSQL은 내부에 둡니다.
@@ -165,4 +170,4 @@ python -m pytest -s ..\every-seoul-backend\tests
 docker compose --env-file .env.production -f compose.prod.yml config
 ```
 
-배포 후에는 실제 Google 계정으로 로그인과 사용자 설정 저장이 정상 동작하는지 확인합니다.
+배포 후에는 실제 Google 계정으로 로그인, 로그아웃, 사용자 설정 저장, 북마크 저장/해제, 뉴스레터 수집 결과 표시가 정상 동작하는지 확인합니다.

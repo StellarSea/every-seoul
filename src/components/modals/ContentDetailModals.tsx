@@ -13,6 +13,20 @@ export function NewsDetailModal({
   tags: InterestTag[];
   onClose: () => void;
 }) {
+  const handleShare = async () => {
+    const shareUrl = news.sourceUrl || window.location.href;
+    const shareText = `${news.title}\n${shareUrl}`;
+    if (navigator.share) {
+      await navigator.share({
+        title: news.title,
+        text: news.excerpt,
+        url: shareUrl
+      });
+      return;
+    }
+    await navigator.clipboard.writeText(shareText);
+  };
+
   return (
     <ModalShell onClose={onClose}>
       <div className="p-8">
@@ -120,7 +134,12 @@ export function NewsDetailModal({
           >
             닫기
           </button>
-          <button className="px-6 bg-[#4267B2] text-white py-3 rounded-lg hover:bg-[#365899] transition-colors">
+          <button
+            onClick={() => {
+              void handleShare().catch(() => undefined);
+            }}
+            className="px-6 bg-[#4267B2] text-white py-3 rounded-lg hover:bg-[#365899] transition-colors"
+          >
             공유하기
           </button>
         </div>
@@ -163,18 +182,15 @@ export function PolicyDetailModal({
           <section>
             <h3 className="text-lg mb-3">지원 내용</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
-              대상 요건을 만족하는 시민에게 신청 절차에 따라 정책 혜택을
-              제공합니다. 자세한 제출 서류와 심사 기준은 서울시 공식 안내를
-              확인해 주세요.
+              {policy.supportDetail}
             </p>
           </section>
           <section>
-            <h3 className="text-lg mb-3">신청 방법</h3>
+            <h3 className="text-lg mb-3">확인 절차</h3>
             <ol className="space-y-2 text-sm text-gray-700 list-decimal list-inside">
-              <li>온라인 신청 페이지 접속</li>
-              <li>본인 인증 및 신청서 작성</li>
-              <li>증빙 서류 업로드</li>
-              <li>심사 결과 확인</li>
+              {policy.applicationSteps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
             </ol>
           </section>
           <div className="bg-blue-50 rounded-lg p-4">
@@ -187,15 +203,12 @@ export function PolicyDetailModal({
             </p>
           </div>
         </div>
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6">
           <button
             onClick={onClose}
-            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors"
+            className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors"
           >
             닫기
-          </button>
-          <button className="px-8 bg-[#4267B2] text-white py-3 rounded-lg hover:bg-[#365899] transition-colors">
-            신청하기
           </button>
         </div>
       </div>
@@ -206,6 +219,7 @@ export function PolicyDetailModal({
 export function BookmarksModal({
   bookmarkedNews,
   bookmarkedPolicies,
+  error,
   newsletters,
   policies,
   tags,
@@ -217,6 +231,7 @@ export function BookmarksModal({
 }: {
   bookmarkedNews: number[];
   bookmarkedPolicies: number[];
+  error: string;
   newsletters: Newsletter[];
   policies: Policy[];
   tags: InterestTag[];
@@ -239,6 +254,11 @@ export function BookmarksModal({
           </p>
         </div>
         <div className="space-y-6">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
           <section>
             <h3 className="text-lg mb-4">
               뉴스레터{' '}

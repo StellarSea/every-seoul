@@ -81,6 +81,8 @@ export interface Policy {
   statusColor: TagColor;
   views: number;
   relevance: number;
+  supportDetail: string;
+  applicationSteps: string[];
 }
 
 export interface ProductPrice {
@@ -108,4 +110,45 @@ export interface EventDetail {
   benefits: string[];
   requirements: string[];
   contact: string;
+}
+
+export interface LifeInfoMetric {
+  label: string;
+  value: string;
+}
+
+export interface AirQualityMetric {
+  label: string;
+  status: string;
+  value: string;
+  tone: 'blue' | 'green';
+}
+
+export interface LifeInfoRow {
+  label: string;
+  value: string;
+  meta?: string | null;
+}
+
+export interface LifeInfoNotice {
+  title: string;
+  description: string;
+}
+
+export interface LifeInfo {
+  district: string;
+  generatedAt: string;
+  weatherSummary: string;
+  temperature: string;
+  feelsLike: string;
+  condition: string;
+  weatherMetrics: LifeInfoMetric[];
+  airQuality: AirQualityMetric[];
+  weeklyForecast: string[][];
+  roads: LifeInfoRow[];
+  transit: LifeInfoRow[];
+  economy: LifeInfoRow[];
+  safetyAlerts: LifeInfoNotice[];
+  productPrices: ProductPrice[];
+  notices: LifeInfoNotice[];
 }

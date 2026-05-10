@@ -19,6 +19,7 @@ interface GoogleLoginResponse {
   name: string;
   picture?: string | null;
   email: string;
+  session_expires_at: string;
 }
 
 export async function loginWithGoogleCredential(
@@ -38,8 +39,13 @@ export async function loginWithGoogleCredential(
     email: data.email,
     picture: data.picture || undefined,
     provider: data.provider,
+    sessionExpiresAt: data.session_expires_at,
     preferences: toPersistedPreferences(data.user)
   };
+}
+
+export async function logoutSession() {
+  await requestJson('/auth/logout', { method: 'POST' });
 }
 
 export async function updateUserPreferences(

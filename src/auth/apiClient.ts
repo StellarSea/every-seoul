@@ -6,7 +6,13 @@ export async function requestJson<T>(
   path: string,
   init?: RequestInit
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, init);
+  const headers = new Headers(init?.headers);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    credentials: 'include',
+    headers
+  });
 
   if (!response.ok) {
     throw new Error(await readErrorMessage(response));

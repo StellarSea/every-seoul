@@ -1,12 +1,26 @@
 services:
+  caddy:
+    image: caddy:2.8-alpine
+    environment:
+      PUBLIC_WEB_HOST: '${PUBLIC_WEB_HOST:?Set PUBLIC_WEB_HOST in your production env file}'
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_started
+    restart: unless-stopped
+
   web:
     build:
       context: .
     environment:
       API_BASE_URL: ${API_BASE_URL:-/api}
       GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in your production env file}'
-    ports:
-      - '80:80'
     depends_on:
       api:
         condition: service_healthy
@@ -30,8 +44,8 @@ services:
       ENABLE_SCHEDULER: ${ENABLE_SCHEDULER:-false}
       CORS_ORIGINS: '${PUBLIC_WEB_ORIGIN:?Set PUBLIC_WEB_ORIGIN in your production env file}'
       GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in your production env file}'
-      SEOUL_OPEN_API_KEY: ${SEOUL_OPEN_API_KEY:-}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      SEOUL_OPEN_API_KEY: '${SEOUL_OPEN_API_KEY:?Set SEOUL_OPEN_API_KEY in your production env file}'
+      OPENROUTER_API_KEY: '${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY in your production env file}'
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
     depends_on:
       db:
@@ -60,4 +74,6 @@ services:
     restart: unless-stopped
 
 volumes:
+  caddy_data:
+  caddy_config:
   postgres_data:

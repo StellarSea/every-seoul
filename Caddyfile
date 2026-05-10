@@ -1,0 +1,27 @@
+(security_headers) {
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}
+
+http://{$PUBLIC_WEB_HOST} {
+	encode gzip
+	import security_headers
+	reverse_proxy web:80
+}
+
+https://{$PUBLIC_WEB_HOST} {
+	encode gzip
+	import security_headers
+	reverse_proxy web:80
+}
+
+http://www.{$PUBLIC_WEB_HOST} {
+	redir http://{$PUBLIC_WEB_HOST}{uri} permanent
+}
+
+https://www.{$PUBLIC_WEB_HOST} {
+	redir https://{$PUBLIC_WEB_HOST}{uri} permanent
+}

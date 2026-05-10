@@ -1,4 +1,9 @@
 import { create } from 'zustand';
+import {
+  clearStoredUser,
+  loadStoredUser,
+  saveStoredUser
+} from '../auth/sessionStorage';
 import type { PersistedUserPreferences } from '../types/app';
 
 export interface AuthUser {
@@ -6,32 +11,32 @@ export interface AuthUser {
   name: string;
   email?: string;
   picture?: string;
-  provider: 'password' | 'google';
+  provider: 'google';
+  sessionExpiresAt: string;
   preferences?: PersistedUserPreferences;
 }
 
 interface AuthState {
   user: AuthUser | null;
-  login: (id: string) => void;
   loginWithGoogle: (user: AuthUser) => void;
   updatePreferences: (preferences: PersistedUserPreferences) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  login: (id: string) =>
-    set({
-      user: {
-        id,
-        name: id,
-        provider: 'password'
-      }
-    }),
-  loginWithGoogle: (user: AuthUser) => set({ user }),
+  user: loadStoredUser(),
+  loginWithGoogle: (user: AuthUser) => {
+    saveStoredUser(user);
+    set({ user });
+  },
   updatePreferences: (preferences: PersistedUserPreferences) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, preferences } : null
-    })),
-  logout: () => set({ user: null })
+    set((state) => {
+      const user = state.user ? { ...state.user, preferences } : null;
+      if (user) saveStoredUser(user);
+      return { user };
+    }),
+  logout: () => {
+    clearStoredUser();
+    set({ user: null });
+  }
 }));

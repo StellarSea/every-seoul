@@ -9,7 +9,14 @@ import {
   Settings
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
-import type { AppTab, InterestTag } from '../../types/app';
+import type {
+  AppTab,
+  EventDetail,
+  InterestTag,
+  LifeInfo,
+  Policy,
+  UserPreferences
+} from '../../types/app';
 import { tagColorClass } from '../../utils/tagStyles';
 
 interface CategoryItem {
@@ -19,12 +26,20 @@ interface CategoryItem {
   sectionId: string;
 }
 
-function getCategoryList(activeTab: AppTab): CategoryItem[] {
+function getCategoryList(
+  activeTab: AppTab,
+  newsletterCount: number,
+  featuredNewsletterCount: number
+): CategoryItem[] {
   if (activeTab === '뉴스레터') {
     return [
       { name: '뉴스레터', icon: Home, sectionId: 'newsletter-top' },
-      { name: '주요 뉴스', count: 12, sectionId: 'featured-news' },
-      { name: '전체 뉴스', count: 28, sectionId: 'all-news' }
+      {
+        name: '주요 뉴스',
+        count: featuredNewsletterCount,
+        sectionId: 'featured-news'
+      },
+      { name: '전체 뉴스', count: newsletterCount, sectionId: 'all-news' }
     ];
   }
 
@@ -48,6 +63,12 @@ interface AppLayoutProps {
   allTags: InterestTag[];
   children: ReactNode;
   district: string;
+  events: EventDetail[];
+  lifeInfo: LifeInfo | null;
+  featuredNewsletterCount: number;
+  newsletterCount: number;
+  policies: Policy[];
+  preferences: UserPreferences;
   selectedTags: string[];
   onEventClick: (eventName: string) => void;
   onOpenTagManagement: () => void;
@@ -59,6 +80,12 @@ export function AppLayout({
   allTags,
   children,
   district,
+  events,
+  lifeInfo,
+  featuredNewsletterCount,
+  newsletterCount,
+  policies,
+  preferences,
   selectedTags,
   onEventClick,
   onOpenTagManagement,
@@ -77,7 +104,11 @@ export function AppLayout({
         <aside className="w-56 flex-shrink-0">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24">
             <div className="space-y-1">
-              {getCategoryList(activeTab).map((category, index) => (
+              {getCategoryList(
+                activeTab,
+                newsletterCount,
+                featuredNewsletterCount
+              ).map((category, index) => (
                 <button
                   key={category.name}
                   onClick={() => scrollToSection(category.sectionId)}
@@ -199,31 +230,33 @@ export function AppLayout({
               <div>
                 <h4 className="text-sm mb-3">이번 주 장보기</h4>
                 <div className="space-y-2">
-                  {['양배추(절임배추)', '돼지고기(삼겹살)', '쌀', '사과'].map(
-                    (product) => (
-                      <button
-                        key={product}
-                        onClick={() => onProductClick(product)}
-                        className="w-full flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
-                      >
-                        <span className="text-xs">{product}</span>
-                        <ChevronRight className="w-3 h-3 text-gray-400" />
-                      </button>
-                    )
+                  {!lifeInfo?.productPrices.length && (
+                    <p className="rounded bg-gray-50 p-2 text-xs text-gray-500">
+                      물가 데이터를 불러오지 못했습니다
+                    </p>
                   )}
+                  {(lifeInfo?.productPrices ?? []).map((product) => (
+                    <button
+                      key={product.name}
+                      onClick={() => onProductClick(product.name)}
+                      className="w-full flex items-center justify-between p-2 bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                    >
+                      <span className="text-xs">{product.name}</span>
+                      <ChevronRight className="w-3 h-3 text-gray-400" />
+                    </button>
+                  ))}
                 </div>
               </div>
               <div>
                 <h4 className="text-sm mb-3">지역 공지사항</h4>
                 <div className="space-y-2">
-                  <Notice
-                    title={`${district}청 민원실 운영시간 변경`}
-                    description="4/15부터 적용"
-                  />
-                  <Notice
-                    title="재활용 분리수거 요일 안내"
-                    description="매주 수/금요일"
-                  />
+                  {(lifeInfo?.notices ?? []).map((notice) => (
+                    <Notice
+                      key={notice.title}
+                      title={notice.title}
+                      description={notice.description}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -235,48 +268,56 @@ export function AppLayout({
                 <h3 className="text-sm mb-3">생활 뉴스 안내</h3>
                 <div className="space-y-2">
                   <InfoRow label="지역" value={district} />
-                  <InfoRow label="나이" value="만 19세 ~ 39세" />
-                  <InfoRow label="자녀" value="없음" />
+                  <InfoRow
+                    label="나이"
+                    value={preferences.age ? `${preferences.age}세` : '미입력'}
+                  />
+                  <InfoRow
+                    label="자녀"
+                    value={preferences.hasChildren ? '있음' : '없음'}
+                  />
                 </div>
               </div>
               <div>
                 <h4 className="text-sm mb-3">맞춤 정책 안내</h4>
                 <div className="space-y-2">
-                  <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
-                    <div className="flex items-center gap-1 mb-1">
-                      <AlertCircle className="w-3 h-3 text-red-600" />
-                      <p className="text-xs text-red-700">마감임박</p>
+                  {policies.length === 0 && (
+                    <p className="rounded bg-gray-50 p-2 text-xs text-gray-500">
+                      표시할 정책이 없습니다
+                    </p>
+                  )}
+                  {policies.slice(0, 2).map((policy) => (
+                    <div
+                      key={policy.id}
+                      className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500"
+                    >
+                      <div className="flex items-center gap-1 mb-1">
+                        <DollarSign className="w-3 h-3 text-blue-600" />
+                        <p className="text-xs text-blue-700">{policy.status}</p>
+                      </div>
+                      <p className="text-sm text-gray-700">{policy.title}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {policy.deadline}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-700">청년 월세 지원</p>
-                    <p className="text-xs text-gray-500 mt-1">D-2</p>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
-                    <div className="flex items-center gap-1 mb-1">
-                      <DollarSign className="w-3 h-3 text-green-600" />
-                      <p className="text-xs text-green-700">모집중</p>
-                    </div>
-                    <p className="text-sm text-gray-700">청년통장 참여자</p>
-                    <p className="text-xs text-gray-500 mt-1">D-10</p>
-                  </div>
+                  ))}
                 </div>
               </div>
               <div>
                 <h4 className="text-sm mb-3">이벤트 안내</h4>
                 <div className="space-y-2">
-                  {['서울시 청년정책 설명회', '온라인 정책 상담'].map(
-                    (eventName) => (
-                      <button
-                        key={eventName}
-                        onClick={() => onEventClick(eventName)}
-                        className="w-full flex items-center justify-between p-2 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
-                      >
-                        <span className="text-xs text-gray-700">
-                          {eventName}
-                        </span>
-                        <ChevronRight className="w-3 h-3 text-gray-400" />
-                      </button>
-                    )
-                  )}
+                  {events.map((event) => (
+                    <button
+                      key={event.title}
+                      onClick={() => onEventClick(event.title)}
+                      className="w-full flex items-center justify-between p-2 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
+                    >
+                      <span className="text-xs text-gray-700">
+                        {event.title}
+                      </span>
+                      <ChevronRight className="w-3 h-3 text-gray-400" />
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

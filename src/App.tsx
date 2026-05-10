@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
-import { allTags, eventDetails, policies, productPrices } from './data/appData';
+import { allTags } from './data/appData';
 import { useAppState } from './hooks/useAppState';
+import { useBookmarks } from './hooks/useBookmarks';
+import { useLifeInfo } from './hooks/useLifeInfo';
 import { useNewsletters } from './hooks/useNewsletters';
+import { usePolicies } from './hooks/usePolicies';
 import LoginModal from './components/modals/LoginModal';
 import { AppHeader } from './components/layout/AppHeader';
 import { AppLayout } from './components/layout/AppLayout';
 import { NewsletterPage } from './components/newsletter/NewsletterPage';
 import { LifeInfoPage } from './components/life-info/LifeInfoPage';
 import { PolicyPage } from './components/policy/PolicyPage';
-import {
-  getFilteredNewsletters,
-  getFilteredPolicies
-} from './utils/appFilters';
-import { updateUserPreferences } from './auth/authApi';
+import { getFilteredNewsletters } from './utils/appFilters';
+import { logoutSession, updateUserPreferences } from './auth/authApi';
 import { useAuthStore, type AuthUser } from './store/authStore';
 import {
   EventDetailModal,
@@ -32,40 +32,44 @@ import {
 
 function App() {
   const state = useAppState();
-  const { login, loginWithGoogle, logout, updatePreferences, user } =
-    useAuthStore();
+  const { loginWithGoogle, logout, updatePreferences, user } = useAuthStore();
   const [settingsError, setSettingsError] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
-  const newsletterQuery = useNewsletters(
-    state.preferences.district,
-    user?.provider === 'google' ? user.id : undefined
-  );
+  const newsletterQuery = useNewsletters(state.preferences.district, user?.id);
+  const lifeInfoQuery = useLifeInfo(state.preferences.district);
+  const policyQuery = usePolicies(state.preferences);
+  const bookmarks = useBookmarks(user?.id);
 
   const filteredNewsletters = useMemo(
     () =>
       getFilteredNewsletters(newsletterQuery.newsletters, state.preferences),
     [newsletterQuery.newsletters, state.preferences]
   );
-  const filteredPolicies = useMemo(
-    () => getFilteredPolicies(policies, state.preferences),
-    [state.preferences]
+  const bookmarkNewsletters = useMemo(
+    () => [
+      ...filteredNewsletters,
+      ...bookmarks.newsletterItems.filter(
+        (bookmark) =>
+          !filteredNewsletters.some((news) => news.id === bookmark.id)
+      )
+    ],
+    [bookmarks.newsletterItems, filteredNewsletters]
   );
-
   const selectedNews = filteredNewsletters.find(
     (news) => news.id === state.selectedNews
   );
-  const selectedPolicy = filteredPolicies.find(
+  const selectedPolicy = policyQuery.policies.find(
     (policy) => policy.id === state.selectedPolicy
   );
-  const selectedProduct = productPrices[state.selectedProduct];
-  const selectedEvent = eventDetails[state.selectedEvent];
-
-  const handleLogin = async (id: string) => {
-    login(id);
-    state.setShowLoginModal(false);
-  };
+  const selectedProduct = lifeInfoQuery.lifeInfo?.productPrices.find(
+    (product) => product.name === state.selectedProduct
+  );
+  const selectedEvent = policyQuery.events.find(
+    (event) => event.title === state.selectedEvent
+  );
 
   const handleLogout = () => {
+    void logoutSession().catch(() => undefined);
     logout();
   };
 
@@ -82,10 +86,22 @@ function App() {
     void newsletterQuery.loadDetail(newsId);
   };
 
+  const handleToggleBookmark = (
+    itemType: 'newsletter' | 'policy',
+    itemId: number
+  ) => {
+    if (!user) {
+      state.setShowLoginModal(true);
+      return;
+    }
+
+    void bookmarks.toggle(itemType, itemId);
+  };
+
   const handleSaveSettings = async () => {
     setSettingsError('');
 
-    if (!user || user.provider !== 'google') {
+    if (!user) {
       setSettingsError('Google 로그인 후 설정을 저장할 수 있습니다.');
       return;
     }
@@ -115,7 +131,7 @@ function App() {
       <AppHeader
         activeTab={state.activeTab}
         bookmarkCount={
-          state.bookmarkedNews.length + state.bookmarkedPolicies.length
+          bookmarks.newsletterIds.length + bookmarks.policyIds.length
         }
         user={user}
         onLogout={handleLogout}
@@ -129,6 +145,14 @@ function App() {
         activeTab={state.activeTab}
         allTags={allTags}
         district={state.preferences.district}
+        events={policyQuery.events}
+        featuredNewsletterCount={
+          filteredNewsletters.filter((newsletter) => newsletter.featured).length
+        }
+        lifeInfo={lifeInfoQuery.lifeInfo}
+        newsletterCount={filteredNewsletters.length}
+        policies={policyQuery.policies}
+        preferences={state.preferences}
         selectedTags={state.selectedTags}
         onEventClick={state.openEvent}
         onOpenTagManagement={() => state.setShowTagManagement(true)}
@@ -136,7 +160,7 @@ function App() {
       >
         {state.activeTab === '뉴스레터' && (
           <NewsletterPage
-            bookmarkedNews={state.bookmarkedNews}
+            bookmarkedNews={bookmarks.newsletterIds}
             district={state.preferences.district}
             error={newsletterQuery.error}
             loading={newsletterQuery.loading}
@@ -145,13 +169,18 @@ function App() {
             tags={allTags}
             onNewsClick={handleOpenNews}
             onRefresh={newsletterQuery.refreshFeed}
-            onToggleBookmark={state.toggleNewsBookmark}
+            onToggleBookmark={(newsId) =>
+              handleToggleBookmark('newsletter', newsId)
+            }
           />
         )}
 
         {state.activeTab === '생활정보' && (
           <LifeInfoPage
             district={state.preferences.district}
+            error={lifeInfoQuery.error}
+            lifeInfo={lifeInfoQuery.lifeInfo}
+            loading={lifeInfoQuery.loading}
             onOpenTraffic={() => state.setShowTrafficDetail(true)}
             onOpenWeather={() => state.setShowWeatherDetail(true)}
           />
@@ -159,11 +188,15 @@ function App() {
 
         {state.activeTab === '맞춤정책' && (
           <PolicyPage
-            bookmarkedPolicies={state.bookmarkedPolicies}
-            policies={filteredPolicies}
+            bookmarkedPolicies={bookmarks.policyIds}
+            error={policyQuery.error}
+            loading={policyQuery.loading}
+            policies={policyQuery.policies}
             preferences={state.preferences}
             onPolicyClick={state.openPolicy}
-            onToggleBookmark={state.togglePolicyBookmark}
+            onToggleBookmark={(policyId) =>
+              handleToggleBookmark('policy', policyId)
+            }
           />
         )}
       </AppLayout>
@@ -172,19 +205,22 @@ function App() {
         <LoginModal
           onClose={() => state.setShowLoginModal(false)}
           onGoogleLogin={handleGoogleLogin}
-          onLogin={handleLogin}
         />
       )}
 
       {state.showWeatherDetail && (
         <WeatherDetailModal
           district={state.preferences.district}
+          lifeInfo={lifeInfoQuery.lifeInfo}
           onClose={() => state.setShowWeatherDetail(false)}
         />
       )}
 
       {state.showTrafficDetail && (
-        <TrafficDetailModal onClose={() => state.setShowTrafficDetail(false)} />
+        <TrafficDetailModal
+          lifeInfo={lifeInfoQuery.lifeInfo}
+          onClose={() => state.setShowTrafficDetail(false)}
+        />
       )}
 
       {state.showPriceDetail && selectedProduct && (
@@ -244,16 +280,21 @@ function App() {
 
       {state.showBookmarks && (
         <BookmarksModal
-          bookmarkedNews={state.bookmarkedNews}
-          bookmarkedPolicies={state.bookmarkedPolicies}
-          newsletters={filteredNewsletters}
-          policies={filteredPolicies}
+          bookmarkedNews={bookmarks.newsletterIds}
+          bookmarkedPolicies={bookmarks.policyIds}
+          error={bookmarks.error}
+          newsletters={bookmarkNewsletters}
+          policies={policyQuery.policies}
           tags={allTags}
           onClose={() => state.setShowBookmarks(false)}
           onNewsClick={handleOpenNews}
           onPolicyClick={state.openPolicy}
-          onToggleNewsBookmark={state.toggleNewsBookmark}
-          onTogglePolicyBookmark={state.togglePolicyBookmark}
+          onToggleNewsBookmark={(newsId) =>
+            handleToggleBookmark('newsletter', newsId)
+          }
+          onTogglePolicyBookmark={(policyId) =>
+            handleToggleBookmark('policy', policyId)
+          }
         />
       )}
     </div>

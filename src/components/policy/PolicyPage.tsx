@@ -11,6 +11,8 @@ import { tagColorClass } from '../../utils/tagStyles';
 
 interface PolicyPageProps {
   bookmarkedPolicies: number[];
+  error: string;
+  loading: boolean;
   policies: Policy[];
   preferences: UserPreferences;
   onPolicyClick: (policyId: number) => void;
@@ -19,6 +21,8 @@ interface PolicyPageProps {
 
 export function PolicyPage({
   bookmarkedPolicies,
+  error,
+  loading,
   policies,
   preferences,
   onPolicyClick,
@@ -53,9 +57,7 @@ export function PolicyPage({
               </div>
             </div>
           </div>
-          <button className="text-sm text-blue-600 hover:text-blue-700">
-            2026.04.11 기준
-          </button>
+          <span className="text-sm text-blue-600">최신 API 응답 기준</span>
         </div>
       </div>
 
@@ -79,67 +81,83 @@ export function PolicyPage({
 
       <div id="policy-list">
         <h3 className="text-lg mb-4">추천 정책 목록</h3>
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+        {loading && (
+          <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+            정책 정보를 불러오는 중입니다.
+          </div>
+        )}
         <div className="space-y-3">
-          {policies.map((policy) => (
-            <article
-              key={policy.id}
-              onClick={() => onPolicyClick(policy.id)}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`px-2 py-0.5 rounded text-xs ${tagColorClass(policy.statusColor)}`}
+          {!loading && policies.length === 0 && (
+            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
+              저장된 뉴스레터에서 확인된 정책 정보가 없습니다.
+            </div>
+          )}
+          {!loading &&
+            policies.map((policy) => (
+              <article
+                key={policy.id}
+                onClick={() => onPolicyClick(policy.id)}
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs ${tagColorClass(policy.statusColor)}`}
+                      >
+                        {policy.status}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {policy.category}
+                      </span>
+                    </div>
+                    <h3 className="text-lg mb-2">{policy.title}</h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      {policy.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>기간: {policy.period}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>{policy.deadline}</span>
+                      </div>
+                      <span>조회 {policy.views.toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onToggleBookmark(policy.id);
+                      }}
+                      className={`p-1.5 rounded transition-colors ${
+                        bookmarkedPolicies.includes(policy.id)
+                          ? 'text-yellow-600'
+                          : 'text-gray-400 hover:text-yellow-600'
+                      }`}
+                      title={
+                        bookmarkedPolicies.includes(policy.id)
+                          ? '북마크 해제'
+                          : '북마크 추가'
+                      }
                     >
-                      {policy.status}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {policy.category}
-                    </span>
-                  </div>
-                  <h3 className="text-lg mb-2">{policy.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {policy.description}
-                  </p>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>기간: {policy.period}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>{policy.deadline}</span>
-                    </div>
-                    <span>조회 {policy.views.toLocaleString()}</span>
+                      <Star
+                        className={`w-4 h-4 ${bookmarkedPolicies.includes(policy.id) ? 'fill-current' : ''}`}
+                      />
+                    </button>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                  <button
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onToggleBookmark(policy.id);
-                    }}
-                    className={`p-1.5 rounded transition-colors ${
-                      bookmarkedPolicies.includes(policy.id)
-                        ? 'text-yellow-600'
-                        : 'text-gray-400 hover:text-yellow-600'
-                    }`}
-                    title={
-                      bookmarkedPolicies.includes(policy.id)
-                        ? '북마크 해제'
-                        : '북마크 추가'
-                    }
-                  >
-                    <Star
-                      className={`w-4 h-4 ${bookmarkedPolicies.includes(policy.id) ? 'fill-current' : ''}`}
-                    />
-                  </button>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            ))}
         </div>
       </div>
     </>
