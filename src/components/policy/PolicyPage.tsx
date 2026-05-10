@@ -117,7 +117,7 @@ export function PolicyPage({
                       </span>
                     </div>
                     <h3 className="text-lg mb-2">{policy.title}</h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="mb-3 line-clamp-4 whitespace-pre-line break-words text-sm text-gray-600">
                       {policy.description}
                     </p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">

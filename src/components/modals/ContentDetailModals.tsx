@@ -61,7 +61,9 @@ export function NewsDetailModal({
           />
         )}
         <div className="space-y-4 text-gray-700 mb-6">
-          <p className="text-lg leading-relaxed">{news.excerpt}</p>
+          <p className="whitespace-pre-line break-words text-lg leading-relaxed">
+            {news.excerpt}
+          </p>
           {news.weather && (
             <div className="bg-blue-50 p-4 rounded-lg">
               <h4 className="font-medium mb-2 flex items-center gap-2">
@@ -83,7 +85,7 @@ export function NewsDetailModal({
                     <p className="font-medium text-gray-900">
                       {highlight.title}
                     </p>
-                    <p className="mt-1 text-sm leading-relaxed text-gray-600">
+                    <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-gray-600">
                       {highlight.summary}
                     </p>
                     {highlight.link && (
@@ -171,7 +173,9 @@ export function PolicyDetailModal({
             </span>
           </div>
           <h2 className="text-3xl mb-3">{policy.title}</h2>
-          <p className="text-lg text-gray-600">{policy.description}</p>
+          <p className="whitespace-pre-line break-words text-lg text-gray-600">
+            {policy.description}
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <InfoBox label="신청 기간" value={policy.period} />
@@ -181,7 +185,7 @@ export function PolicyDetailModal({
         <div className="space-y-6">
           <section>
             <h3 className="text-lg mb-3">지원 내용</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="whitespace-pre-line break-words text-sm text-gray-700 leading-relaxed">
               {policy.supportDetail}
             </p>
           </section>
