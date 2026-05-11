@@ -150,9 +150,7 @@ function FeaturedNewsletterCard({
           <BookmarkButton active={bookmarked} onClick={onToggleBookmark} />
         </div>
         <h3 className="text-xl mb-3">{newsletter.title}</h3>
-        <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-          {newsletter.excerpt}
-        </p>
+        <QuickSummary newsletter={newsletter} />
         <TagList newsletter={newsletter} tags={tags} />
       </div>
     </article>
@@ -191,11 +189,26 @@ function NewsletterListItem({
         </div>
       </div>
       <h3 className="mb-2">{newsletter.title}</h3>
-      <p className="text-sm text-gray-600 mb-3 leading-relaxed">
-        {newsletter.excerpt}
-      </p>
+      <QuickSummary newsletter={newsletter} />
       <TagList newsletter={newsletter} tags={tags} />
     </article>
+  );
+}
+
+function QuickSummary({ newsletter }: { newsletter: Newsletter }) {
+  const items = newsletter.quickSummary?.length
+    ? newsletter.quickSummary
+    : [newsletter.excerpt];
+
+  return (
+    <ul className="mb-4 space-y-1 text-sm leading-relaxed text-gray-600">
+      {items.slice(0, 3).map((item) => (
+        <li key={item} className="flex gap-2">
+          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+          <span className="break-words">{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

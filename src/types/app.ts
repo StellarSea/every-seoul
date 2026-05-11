@@ -23,6 +23,7 @@ export interface Newsletter {
   excerpt: string;
   isRead?: boolean;
   sourceUrl?: string;
+  quickSummary?: string[];
   sections?: NewsletterSection[];
   culturalEvents?: NewsletterEvent[];
   weather?: string;
@@ -83,6 +84,19 @@ export interface Policy {
   relevance: number;
   supportDetail: string;
   applicationSteps: string[];
+  sourceUrl?: string;
+  quickSummary?: string[];
+  recommendationReason?: string;
+}
+
+export interface AppNotification {
+  id: string;
+  title: string;
+  description: string;
+  tone: 'blue' | 'green' | 'orange' | 'red';
+  actionLabel: string;
+  createdAt: string;
+  onOpen: () => void;
 }
 
 export interface ProductPrice {
@@ -135,6 +149,16 @@ export interface LifeInfoNotice {
   description: string;
 }
 
+export interface NearbyFacility {
+  name: string;
+  category: string;
+  address: string;
+  description: string;
+  sourceUrl?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 export interface LifeInfo {
   district: string;
   generatedAt: string;
@@ -151,4 +175,5 @@ export interface LifeInfo {
   safetyAlerts: LifeInfoNotice[];
   productPrices: ProductPrice[];
   notices: LifeInfoNotice[];
+  nearbyFacilities: NearbyFacility[];
 }

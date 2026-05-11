@@ -1,4 +1,4 @@
-import { AlertCircle, Calendar, Star } from 'lucide-react';
+import { AlertCircle, Calendar, ExternalLink, Star } from 'lucide-react';
 import { ImageWithFallback } from '../shared/ImageWithFallback';
 import { ModalShell } from './ModalShell';
 import type { InterestTag, Newsletter, Policy } from '../../types/app';
@@ -61,6 +61,7 @@ export function NewsDetailModal({
           />
         )}
         <div className="space-y-4 text-gray-700 mb-6">
+          <QuickSummary title="3줄 요약" items={news.quickSummary} />
           <p className="whitespace-pre-line break-words text-lg leading-relaxed">
             {news.excerpt}
           </p>
@@ -130,6 +131,17 @@ export function NewsDetailModal({
           )}
         </div>
         <div className="mt-6 flex gap-3">
+          {news.sourceUrl && (
+            <a
+              href={news.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white py-3 text-blue-600 ring-1 ring-blue-200 transition-colors hover:bg-blue-50"
+            >
+              대표 원문 보기
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
           <button
             onClick={onClose}
             className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors"
@@ -177,6 +189,12 @@ export function PolicyDetailModal({
             </span>
           </div>
           <h2 className="text-3xl mb-3">{policy.title}</h2>
+          {policy.recommendationReason && (
+            <p className="mb-3 inline-flex rounded bg-blue-50 px-3 py-1 text-sm text-blue-700">
+              {policy.recommendationReason}
+            </p>
+          )}
+          <QuickSummary title="핵심 요약" items={policy.quickSummary} />
           <p className="whitespace-pre-line break-words text-lg text-gray-600">
             {policy.description}
           </p>
@@ -213,16 +231,45 @@ export function PolicyDetailModal({
             </p>
           </div>
         </div>
-        <div className="mt-6">
+        <div className="mt-6 flex gap-3">
+          {policy.sourceUrl && (
+            <a
+              href={policy.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-[#4267B2] py-3 text-white transition-colors hover:bg-[#365899]"
+            >
+              신청/원문 보기
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
           <button
             onClick={onClose}
-            className="w-full bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors"
+            className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors"
           >
             닫기
           </button>
         </div>
       </div>
     </ModalShell>
+  );
+}
+
+function QuickSummary({ items, title }: { items?: string[]; title: string }) {
+  if (!items?.length) return null;
+
+  return (
+    <div className="mb-4 rounded-lg bg-blue-50 p-4">
+      <h3 className="mb-2 text-sm font-medium text-blue-900">{title}</h3>
+      <ul className="space-y-1 text-sm text-gray-700">
+        {items.slice(0, 3).map((item) => (
+          <li key={item} className="flex gap-2">
+            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+            <span className="break-words">{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

@@ -4,6 +4,7 @@ import type {
   NewsletterSection
 } from '../types/app';
 import { requestJson } from './apiClient';
+import { buildQuickSummary } from '../utils/summaries';
 
 interface BackendNewsletterSummary {
   id: number;
@@ -102,7 +103,10 @@ function mapNewsletterSummary(
     tags: item.tags || [],
     views: 0,
     featured: options.featured,
-    isRead: options.isRead
+    isRead: options.isRead,
+    quickSummary: buildQuickSummary(
+      item.summary || '상세 브리핑을 불러와 확인해 주세요.'
+    )
   };
 }
 
@@ -122,11 +126,24 @@ function mapNewsletterDetail(
       options
     ),
     excerpt: briefing.summary || item.summary || '요약 내용이 없습니다.',
+    quickSummary: buildQuickSummary(
+      briefing.summary || item.summary || '요약 내용이 없습니다.'
+    ),
     sections: briefing.sections || [],
     culturalEvents: briefing.cultural_events || [],
+    sourceUrl: getFirstSourceUrl(briefing.sections),
     weather: briefing.weather,
     generatedAt: briefing.generated_at
   };
+}
+
+function getFirstSourceUrl(sections?: NewsletterSection[]) {
+  for (const section of sections ?? []) {
+    const link = section.highlights.find((highlight) => highlight.link)?.link;
+    if (link) return link;
+  }
+
+  return undefined;
 }
 
 function formatDate(value: string) {

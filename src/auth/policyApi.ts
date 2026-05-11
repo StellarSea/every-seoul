@@ -5,6 +5,8 @@ import type {
   UserPreferences
 } from '../types/app';
 import { requestJson } from './apiClient';
+import { buildQuickSummary } from '../utils/summaries';
+import { getPolicyRecommendationReason } from '../utils/recommendations';
 
 interface BackendPolicy {
   id: number;
@@ -19,6 +21,7 @@ interface BackendPolicy {
   relevance: number;
   support_detail: string;
   application_steps: string[];
+  source_url?: string | null;
 }
 
 interface BackendEventDetail {
@@ -56,13 +59,13 @@ export async function fetchPolicies(preferences: UserPreferences) {
   );
 
   return {
-    policies: data.items.map(mapPolicy),
+    policies: data.items.map((item) => mapPolicy(item, preferences)),
     events: data.events.map(mapEvent)
   };
 }
 
-function mapPolicy(item: BackendPolicy): Policy {
-  return {
+function mapPolicy(item: BackendPolicy, preferences: UserPreferences): Policy {
+  const policy = {
     id: item.id,
     title: item.title,
     description: item.description,
@@ -74,7 +77,14 @@ function mapPolicy(item: BackendPolicy): Policy {
     views: item.views,
     relevance: item.relevance,
     supportDetail: item.support_detail,
-    applicationSteps: item.application_steps
+    applicationSteps: item.application_steps,
+    sourceUrl: item.source_url || undefined,
+    quickSummary: buildQuickSummary(item.description || item.support_detail)
+  };
+
+  return {
+    ...policy,
+    recommendationReason: getPolicyRecommendationReason(policy, preferences)
   };
 }
 

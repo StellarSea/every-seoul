@@ -18,6 +18,7 @@ export function useAppState() {
   const [showPolicyDetail, setShowPolicyDetail] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [age, setAge] = useState('');
   const [district, setDistrict] = useState('강남구');
   const [hasChildren, setHasChildren] = useState(false);
@@ -134,6 +135,7 @@ export function useAppState() {
     setShowEventDetail,
     setShowLoginModal,
     setShowNewsDetail,
+    setShowNotifications,
     setShowPolicyDetail,
     setShowPriceDetail,
     setShowSettings,
@@ -144,6 +146,7 @@ export function useAppState() {
     showEventDetail,
     showLoginModal,
     showNewsDetail,
+    showNotifications,
     showPolicyDetail,
     showPriceDetail,
     showSettings,

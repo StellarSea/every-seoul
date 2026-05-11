@@ -72,6 +72,11 @@ export function PolicyPage({
                 ? '입력하신 정보를 바탕으로 맞춤 정책을 안내해드립니다'
                 : '고객님의 나이와 자녀 유무를 기준으로 맞춤 정책을 안내해드립니다'}
             </p>
+            {policies[0]?.recommendationReason && (
+              <p className="text-xs text-blue-700">
+                첫 추천 근거: {policies[0].recommendationReason}
+              </p>
+            )}
             <p className="text-xs text-blue-700">
               정보 수정을 원하시면 우측 상단의 설정에서 변경하실 수 있습니다
             </p>
@@ -117,9 +122,26 @@ export function PolicyPage({
                       </span>
                     </div>
                     <h3 className="text-lg mb-2">{policy.title}</h3>
-                    <p className="mb-3 line-clamp-4 whitespace-pre-line break-words text-sm text-gray-600">
-                      {policy.description}
-                    </p>
+                    {policy.recommendationReason && (
+                      <p className="mb-2 inline-flex rounded bg-blue-50 px-2 py-1 text-xs text-blue-700">
+                        {policy.recommendationReason}
+                      </p>
+                    )}
+                    <ul className="mb-3 space-y-1 text-sm text-gray-600">
+                      {(policy.quickSummary?.length
+                        ? policy.quickSummary
+                        : [policy.description]
+                      )
+                        .slice(0, 3)
+                        .map((item) => (
+                          <li key={item} className="flex gap-2">
+                            <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                            <span className="line-clamp-2 break-words">
+                              {item}
+                            </span>
+                          </li>
+                        ))}
+                    </ul>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />

@@ -1,4 +1,4 @@
-import type { LifeInfo, ProductPrice } from '../types/app';
+import type { LifeInfo, NearbyFacility, ProductPrice } from '../types/app';
 import { requestJson } from './apiClient';
 
 interface BackendMetric {
@@ -22,6 +22,16 @@ interface BackendInfoRow {
 interface BackendNotice {
   title: string;
   description: string;
+}
+
+interface BackendNearbyFacility {
+  name: string;
+  category: string;
+  address: string;
+  description: string;
+  source_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 interface BackendProductPrice {
@@ -52,6 +62,7 @@ interface BackendLifeInfo {
   safety_alerts: BackendNotice[];
   product_prices: BackendProductPrice[];
   notices: BackendNotice[];
+  nearby_facilities?: BackendNearbyFacility[];
 }
 
 export async function fetchLifeInfo(district: string): Promise<LifeInfo> {
@@ -75,7 +86,8 @@ export async function fetchLifeInfo(district: string): Promise<LifeInfo> {
     economy: data.economy,
     safetyAlerts: data.safety_alerts,
     productPrices: data.product_prices.map(mapProductPrice),
-    notices: data.notices
+    notices: data.notices,
+    nearbyFacilities: (data.nearby_facilities ?? []).map(mapNearbyFacility)
   };
 }
 
@@ -90,5 +102,17 @@ function mapProductPrice(item: BackendProductPrice): ProductPrice {
     trend: item.trend,
     stores: item.stores,
     graph: item.graph
+  };
+}
+
+function mapNearbyFacility(item: BackendNearbyFacility): NearbyFacility {
+  return {
+    name: item.name,
+    category: item.category,
+    address: item.address,
+    description: item.description,
+    sourceUrl: item.source_url || undefined,
+    latitude: item.latitude ?? undefined,
+    longitude: item.longitude ?? undefined
   };
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { allTags } from './data/appData';
 import { useAppState } from './hooks/useAppState';
 import { useBookmarks } from './hooks/useBookmarks';
@@ -6,12 +6,22 @@ import { useLifeInfo } from './hooks/useLifeInfo';
 import { useNewsletters } from './hooks/useNewsletters';
 import { usePolicies } from './hooks/usePolicies';
 import LoginModal from './components/modals/LoginModal';
+import { NotificationsModal } from './components/modals/NotificationsModal';
 import { AppHeader } from './components/layout/AppHeader';
 import { AppLayout } from './components/layout/AppLayout';
 import { NewsletterPage } from './components/newsletter/NewsletterPage';
 import { LifeInfoPage } from './components/life-info/LifeInfoPage';
 import { PolicyPage } from './components/policy/PolicyPage';
 import { getFilteredNewsletters } from './utils/appFilters';
+import { buildNotifications } from './utils/notifications';
+import {
+  disableBrowserNotifications,
+  enableBrowserNotifications,
+  getBrowserNotificationEnabled,
+  getBrowserNotificationSupport,
+  sendServerTestPush,
+  sendBrowserNotifications
+} from './utils/browserNotifications';
 import { logoutSession, updateUserPreferences } from './auth/authApi';
 import { useAuthStore, type AuthUser } from './store/authStore';
 import {
@@ -35,6 +45,10 @@ function App() {
   const { loginWithGoogle, logout, updatePreferences, user } = useAuthStore();
   const [settingsError, setSettingsError] = useState('');
   const [savingSettings, setSavingSettings] = useState(false);
+  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] =
+    useState(getBrowserNotificationEnabled);
+  const [browserNotificationMessage, setBrowserNotificationMessage] =
+    useState('');
   const newsletterQuery = useNewsletters(state.preferences.district, user?.id);
   const lifeInfoQuery = useLifeInfo(state.preferences.district);
   const policyQuery = usePolicies(state.preferences);
@@ -67,7 +81,6 @@ function App() {
   const selectedEvent = policyQuery.events.find(
     (event) => event.title === state.selectedEvent
   );
-
   const handleLogout = () => {
     void logoutSession().catch(() => undefined);
     logout();
@@ -81,9 +94,76 @@ function App() {
     state.setShowLoginModal(false);
   };
 
-  const handleOpenNews = (newsId: number) => {
-    state.openNews(newsId);
-    void newsletterQuery.loadDetail(newsId);
+  const handleOpenNews = useCallback(
+    (newsId: number) => {
+      state.openNews(newsId);
+      void newsletterQuery.loadDetail(newsId);
+    },
+    [newsletterQuery, state]
+  );
+
+  const notifications = useMemo(
+    () =>
+      buildNotifications({
+        lifeInfo: lifeInfoQuery.lifeInfo,
+        newsletters: filteredNewsletters,
+        policies: policyQuery.policies,
+        onOpenNews: handleOpenNews,
+        onOpenPolicy: state.openPolicy,
+        onOpenWeather: () => state.setShowWeatherDetail(true)
+      }),
+    [
+      filteredNewsletters,
+      lifeInfoQuery.lifeInfo,
+      policyQuery.policies,
+      handleOpenNews,
+      state
+    ]
+  );
+
+  useEffect(() => {
+    sendBrowserNotifications(notifications);
+  }, [notifications]);
+
+  const handleEnableBrowserNotifications = async () => {
+    setBrowserNotificationMessage('');
+    try {
+      const enabled = await enableBrowserNotifications();
+      setBrowserNotificationsEnabled(enabled);
+      setBrowserNotificationMessage(
+        enabled
+          ? '브라우저 푸시 알림이 연결되었습니다.'
+          : '브라우저 알림 권한 또는 VAPID 키를 확인해 주세요.'
+      );
+    } catch (error) {
+      setBrowserNotificationMessage(
+        error instanceof Error
+          ? error.message
+          : '브라우저 푸시 알림 연결에 실패했습니다.'
+      );
+    }
+  };
+
+  const handleDisableBrowserNotifications = async () => {
+    await disableBrowserNotifications();
+    setBrowserNotificationsEnabled(false);
+    setBrowserNotificationMessage('브라우저 푸시 알림을 껐습니다.');
+  };
+
+  const handleSendTestPush = async () => {
+    setBrowserNotificationMessage('');
+    try {
+      const result = await sendServerTestPush();
+      setBrowserNotificationMessage(
+        `테스트 알림 발송: 성공 ${result.sent}건, 실패 ${result.failed}건`
+      );
+    } catch (error) {
+      setBrowserNotificationMessage(
+        error instanceof Error
+          ? error.message
+          : '테스트 알림 발송에 실패했습니다.'
+      );
+    }
   };
 
   const handleToggleBookmark = (
@@ -133,10 +213,12 @@ function App() {
         bookmarkCount={
           bookmarks.newsletterIds.length + bookmarks.policyIds.length
         }
+        notificationCount={notifications.length}
         user={user}
         onLogout={handleLogout}
         onOpenBookmarks={() => state.setShowBookmarks(true)}
         onOpenLogin={() => state.setShowLoginModal(true)}
+        onOpenNotifications={() => state.setShowNotifications(true)}
         onOpenSettings={() => state.setShowSettings(true)}
         onTabChange={state.setActiveTab}
       />
@@ -296,6 +378,20 @@ function App() {
           onTogglePolicyBookmark={(policyId) =>
             handleToggleBookmark('policy', policyId)
           }
+        />
+      )}
+
+      {state.showNotifications && (
+        <NotificationsModal
+          browserNotificationsEnabled={browserNotificationsEnabled}
+          browserNotificationMessage={browserNotificationMessage}
+          browserNotificationsSupported={getBrowserNotificationSupport()}
+          canManagePushNotifications={Boolean(user)}
+          notifications={notifications}
+          onClose={() => state.setShowNotifications(false)}
+          onDisableBrowserNotifications={handleDisableBrowserNotifications}
+          onEnableBrowserNotifications={handleEnableBrowserNotifications}
+          onSendTestPush={handleSendTestPush}
         />
       )}
     </div>

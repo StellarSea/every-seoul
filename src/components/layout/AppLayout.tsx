@@ -6,6 +6,7 @@ import {
   DollarSign,
   FileText,
   Home,
+  MapPin,
   Settings
 } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
@@ -48,6 +49,7 @@ function getCategoryList(
       { name: '생활정보', icon: Cloud, sectionId: 'life-info-top' },
       { name: '날씨 정보', icon: Cloud, sectionId: 'weather-section' },
       { name: '교통 정보', icon: Car, sectionId: 'traffic-section' },
+      { name: '주변 장소', icon: MapPin, sectionId: 'nearby-section' },
       { name: '추가 정보', icon: AlertCircle, sectionId: 'additional-info' }
     ];
   }
@@ -93,6 +95,7 @@ export function AppLayout({
   onPolicyClick,
   onProductClick
 }: AppLayoutProps) {
+  const notices = getVisibleNotices(lifeInfo);
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({
       behavior: 'smooth',
@@ -102,10 +105,10 @@ export function AppLayout({
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-6">
-      <div className="flex gap-6">
-        <aside className="w-56 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24">
-            <div className="space-y-1">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <aside className="w-full flex-shrink-0 lg:w-56">
+          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:block lg:space-y-1">
               {getCategoryList(
                 activeTab,
                 newsletterCount,
@@ -133,7 +136,7 @@ export function AppLayout({
           </div>
         </aside>
 
-        <main className="flex-1 min-w-0">
+        <main className="min-w-0 flex-1">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Home className="w-4 h-4" />
@@ -144,9 +147,9 @@ export function AppLayout({
           </div>
         </main>
 
-        <aside className="w-64 flex-shrink-0">
+        <aside className="w-full flex-shrink-0 lg:w-64">
           {activeTab === '뉴스레터' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm">관심 태그</h3>
                 <button
@@ -187,7 +190,7 @@ export function AppLayout({
           )}
 
           {activeTab === '생활정보' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24 space-y-4">
+            <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
               <div>
                 <h3 className="text-sm mb-3">빠른 정보</h3>
                 <div className="space-y-2">
@@ -204,6 +207,12 @@ export function AppLayout({
                       icon: Car,
                       className:
                         'bg-orange-50 hover:bg-orange-100 text-orange-600'
+                    },
+                    {
+                      label: '주변 장소',
+                      id: 'nearby-section',
+                      icon: MapPin,
+                      className: 'bg-green-50 hover:bg-green-100 text-green-600'
                     },
                     {
                       label: '재난/안전',
@@ -252,7 +261,7 @@ export function AppLayout({
               <div>
                 <h4 className="text-sm mb-3">지역 공지사항</h4>
                 <div className="space-y-2">
-                  {(lifeInfo?.notices ?? []).map((notice) => (
+                  {notices.map((notice) => (
                     <Notice
                       key={notice.title}
                       title={notice.title}
@@ -261,11 +270,37 @@ export function AppLayout({
                   ))}
                 </div>
               </div>
+              <div>
+                <h4 className="text-sm mb-3">주변 추천</h4>
+                <div className="space-y-2">
+                  {!lifeInfo?.nearbyFacilities.length && (
+                    <p className="rounded bg-gray-50 p-2 text-xs text-gray-500">
+                      주변 장소 정보가 없습니다
+                    </p>
+                  )}
+                  {(lifeInfo?.nearbyFacilities ?? [])
+                    .slice(0, 3)
+                    .map((facility) => (
+                      <button
+                        key={`${facility.name}-${facility.address}`}
+                        onClick={() => scrollToSection('nearby-section')}
+                        className="w-full rounded bg-green-50 p-2 text-left transition-colors hover:bg-green-100"
+                      >
+                        <p className="text-xs text-green-700">
+                          {facility.category}
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-700">
+                          {facility.name}
+                        </p>
+                      </button>
+                    ))}
+                </div>
+              </div>
             </div>
           )}
 
           {activeTab === '맞춤정책' && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-24 space-y-4">
+            <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-24">
               <div>
                 <h3 className="text-sm mb-3">생활 뉴스 안내</h3>
                 <div className="space-y-2">
@@ -304,6 +339,11 @@ export function AppLayout({
                         <ChevronRight className="w-3 h-3 text-blue-500" />
                       </div>
                       <p className="text-sm text-gray-700">{policy.title}</p>
+                      {policy.recommendationReason && (
+                        <p className="mt-1 text-xs text-blue-700">
+                          {policy.recommendationReason}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-500 mt-1">
                         {policy.deadline}
                       </p>
@@ -339,6 +379,22 @@ export function AppLayout({
       </div>
     </div>
   );
+}
+
+function getVisibleNotices(lifeInfo: LifeInfo | null) {
+  if (!lifeInfo) return [];
+  if (lifeInfo.notices.length > 0) return lifeInfo.notices;
+
+  return [
+    {
+      title: `${lifeInfo.district} 생활정보 갱신`,
+      description: lifeInfo.generatedAt
+    },
+    {
+      title: '공공데이터 기준 안내',
+      description: '날씨, 교통, 물가 정보는 최신 API 응답 기준입니다'
+    }
+  ];
 }
 
 function Notice({

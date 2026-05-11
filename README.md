@@ -20,8 +20,19 @@ pnpm dev
 | ----------------------- | ----------------------------------------- | ------------------------------ |
 | `VITE_API_BASE_URL`     | 프론트엔드가 호출할 백엔드 API 기본 주소  | `http://localhost:8000/api`    |
 | `VITE_GOOGLE_CLIENT_ID` | Google Identity Services 웹 클라이언트 ID | `*.apps.googleusercontent.com` |
+| `VITE_VAPID_PUBLIC_KEY` | 브라우저 Web Push 구독용 공개키           | `B...`                         |
 
-프로덕션 Docker 컨테이너는 시작 시점에 런타임 설정을 `/env.js`로 생성합니다. 그래서 이미 빌드된 이미지도 `API_BASE_URL`, `GOOGLE_CLIENT_ID` 환경 변수만 바꿔 다른 환경에서 실행할 수 있습니다.
+프로덕션 Docker 컨테이너는 시작 시점에 런타임 설정을 `/env.js`로 생성합니다. 그래서 이미 빌드된 이미지도 `API_BASE_URL`, `GOOGLE_CLIENT_ID`, `VAPID_PUBLIC_KEY` 환경 변수만 바꿔 다른 환경에서 실행할 수 있습니다.
+
+## Web Push 알림
+
+브라우저 푸시 알림은 VAPID 키가 필요합니다. 백엔드 저장소에서 다음 명령으로 키를 생성한 뒤, 출력값을 프론트엔드와 백엔드 환경 변수에 나눠 설정합니다.
+
+```bash
+python scripts/generate_vapid_keys.py
+```
+
+프론트엔드에는 `VITE_VAPID_PUBLIC_KEY`, 백엔드에는 `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_CLAIM_EMAIL`을 설정합니다. 프로덕션 Docker에서는 `VAPID_PUBLIC_KEY`가 웹 컨테이너 런타임 설정에도 전달됩니다.
 
 ## 주요 명령어
 

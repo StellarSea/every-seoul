@@ -21,6 +21,7 @@ services:
     environment:
       API_BASE_URL: ${API_BASE_URL:-/api}
       GOOGLE_CLIENT_ID: '${GOOGLE_CLIENT_ID:?Set GOOGLE_CLIENT_ID in your production env file}'
+      VAPID_PUBLIC_KEY: '${VAPID_PUBLIC_KEY:?Set VAPID_PUBLIC_KEY in your production env file}'
     depends_on:
       api:
         condition: service_healthy
@@ -47,6 +48,9 @@ services:
       ADMIN_API_KEY: '${ADMIN_API_KEY:?Set ADMIN_API_KEY in your production env file}'
       SEOUL_OPEN_API_KEY: '${SEOUL_OPEN_API_KEY:?Set SEOUL_OPEN_API_KEY in your production env file}'
       OPENROUTER_API_KEY: '${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY in your production env file}'
+      VAPID_PUBLIC_KEY: '${VAPID_PUBLIC_KEY:?Set VAPID_PUBLIC_KEY in your production env file}'
+      VAPID_PRIVATE_KEY: '${VAPID_PRIVATE_KEY:?Set VAPID_PRIVATE_KEY in your production env file}'
+      VAPID_CLAIM_EMAIL: ${VAPID_CLAIM_EMAIL:-mailto:admin@everyseoul.com}
       UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
     depends_on:
       db:
