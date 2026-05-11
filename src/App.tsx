@@ -82,8 +82,13 @@ function App() {
     (event) => event.title === state.selectedEvent
   );
   const handleLogout = () => {
-    void logoutSession().catch(() => undefined);
-    logout();
+    void disableBrowserNotifications()
+      .catch(() => undefined)
+      .finally(() => {
+        void logoutSession().catch(() => undefined);
+        setBrowserNotificationsEnabled(false);
+        logout();
+      });
   };
 
   const handleGoogleLogin = (googleUser: AuthUser) => {

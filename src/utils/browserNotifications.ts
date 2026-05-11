@@ -35,12 +35,15 @@ export async function enableBrowserNotifications() {
       ? await Notification.requestPermission()
       : Notification.permission;
 
-  const enabled = permission === 'granted';
-  window.localStorage.setItem(ENABLED_KEY, String(enabled));
-  if (!enabled) return false;
+  if (permission !== 'granted') {
+    window.localStorage.setItem(ENABLED_KEY, 'false');
+    return false;
+  }
 
   const subscription = await subscribeToWebPush();
-  return Boolean(subscription);
+  const enabled = Boolean(subscription);
+  window.localStorage.setItem(ENABLED_KEY, String(enabled));
+  return enabled;
 }
 
 export async function disableBrowserNotifications() {
