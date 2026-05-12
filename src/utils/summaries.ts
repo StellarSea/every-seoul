@@ -8,9 +8,14 @@ export function buildQuickSummary(text: string, maxItems = 3) {
     .filter(Boolean);
 
   const source = sentences.length > 1 ? sentences : normalized.split(/[,·]/);
+  const seen = new Set<string>();
 
   return source
     .map((item) => item.trim())
-    .filter(Boolean)
+    .filter((item) => {
+      if (!item || seen.has(item)) return false;
+      seen.add(item);
+      return true;
+    })
     .slice(0, maxItems);
 }

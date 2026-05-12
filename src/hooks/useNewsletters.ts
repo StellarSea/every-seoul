@@ -6,6 +6,7 @@ import {
   markNewsletterAsRead,
   refreshUserFeed
 } from '../auth/newsletterApi';
+import { ApiError } from '../auth/apiClient';
 import type { Newsletter } from '../types/app';
 
 export function useNewsletters(district: string, userId?: string) {
@@ -24,6 +25,20 @@ export function useNewsletters(district: string, userId?: string) {
         : await fetchNewsletters(district);
       setNewsletters(items);
     } catch (loadError) {
+      if (userId && isAuthError(loadError)) {
+        try {
+          setNewsletters(await fetchNewsletters(district));
+          setError(
+            '로그인 세션을 확인하지 못해 기본 뉴스레터를 보여드리고 있습니다.'
+          );
+          return;
+        } catch (fallbackError) {
+          setError(toErrorMessage(fallbackError));
+          setNewsletters([]);
+          return;
+        }
+      }
+
       setError(toErrorMessage(loadError));
       setNewsletters([]);
     } finally {
@@ -84,4 +99,10 @@ function toErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : '뉴스레터를 불러오지 못했습니다.';
+}
+
+function isAuthError(error: unknown) {
+  return (
+    error instanceof ApiError && (error.status === 401 || error.status === 403)
+  );
 }

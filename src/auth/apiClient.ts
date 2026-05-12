@@ -2,6 +2,16 @@ import { getApiBaseUrl } from '../utils/runtimeConfig';
 
 export const API_BASE_URL = getApiBaseUrl();
 
+export class ApiError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 export async function requestJson<T>(
   path: string,
   init?: RequestInit
@@ -15,7 +25,7 @@ export async function requestJson<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
+    throw new ApiError(await readErrorMessage(response), response.status);
   }
 
   if (response.status === 204) {
