@@ -5,6 +5,7 @@ export function getFilteredNewsletters(
   preferences: UserPreferences
 ) {
   return source
+    .filter((news) => isRelevantDistrictNewsletter(news, preferences.district))
     .map((news) => {
       const districtRelevance = preferences.district
         ? Number(news.category.includes(preferences.district)) * 10
@@ -32,6 +33,12 @@ export function getFilteredNewsletters(
       return { ...news, relevance: districtRelevance + interestRelevance };
     })
     .sort((a, b) => b.relevance - a.relevance);
+}
+
+function isRelevantDistrictNewsletter(news: Newsletter, district: string) {
+  if (!district) return true;
+
+  return news.category.includes(district) || news.category.includes('서울시');
 }
 
 export function getFilteredPolicies(

@@ -55,9 +55,12 @@ export async function fetchNewsletters(district: string) {
   );
 }
 
-export async function fetchUserFeed(userId: string) {
+export async function fetchUserFeed(userId: string, district: string) {
+  const search = new URLSearchParams({ limit: '20' });
+  if (district) search.set('district', district);
+
   const data = await requestJson<UserFeedResponse>(
-    `/users/${userId}/feed?limit=20`
+    `/users/${userId}/feed?${search.toString()}`
   );
 
   return data.items.map((item, index) =>

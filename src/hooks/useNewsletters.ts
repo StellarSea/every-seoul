@@ -21,7 +21,7 @@ export function useNewsletters(district: string, userId?: string) {
 
     try {
       const items = userId
-        ? await fetchUserFeed(userId)
+        ? await fetchUserFeed(userId, district)
         : await fetchNewsletters(district);
       setNewsletters(items);
     } catch (loadError) {
