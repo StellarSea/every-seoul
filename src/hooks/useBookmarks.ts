@@ -5,6 +5,7 @@ import {
   removeBookmark,
   type BookmarkItemType
 } from '../auth/bookmarkApi';
+import { ApiError } from '../auth/apiClient';
 import { fetchNewsletterDetail } from '../auth/newsletterApi';
 import type { Newsletter } from '../types/app';
 
@@ -40,6 +41,14 @@ export function useBookmarks(userId?: string) {
           .map((item) => item.item_id)
       );
     } catch (loadError) {
+      if (isAuthError(loadError)) {
+        setNewsletterIds([]);
+        setNewsletterItems([]);
+        setPolicyIds([]);
+        setError('');
+        return;
+      }
+
       setError(
         loadError instanceof Error
           ? loadError.message
@@ -69,6 +78,11 @@ export function useBookmarks(userId?: string) {
         await reload();
         return true;
       } catch (toggleError) {
+        if (isAuthError(toggleError)) {
+          setError('로그인 세션이 만료되었습니다. 다시 로그인해 주세요.');
+          return false;
+        }
+
         setError(
           toggleError instanceof Error
             ? toggleError.message
@@ -90,5 +104,11 @@ export function useBookmarks(userId?: string) {
       toggle
     }),
     [error, newsletterIds, newsletterItems, policyIds, reload, toggle]
+  );
+}
+
+function isAuthError(error: unknown) {
+  return (
+    error instanceof ApiError && (error.status === 401 || error.status === 403)
   );
 }
