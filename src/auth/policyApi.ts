@@ -7,6 +7,7 @@ import type {
 import { requestJson } from './apiClient';
 import { buildQuickSummary } from '../utils/summaries';
 import { getPolicyRecommendationReason } from '../utils/recommendations';
+import { getExternalSourceUrl } from '../utils/sourceUrls';
 
 interface BackendPolicy {
   id: number;
@@ -78,7 +79,7 @@ function mapPolicy(item: BackendPolicy, preferences: UserPreferences): Policy {
     relevance: item.relevance,
     supportDetail: item.support_detail,
     applicationSteps: item.application_steps,
-    sourceUrl: item.source_url || undefined,
+    sourceUrl: getExternalSourceUrl(item.source_url),
     quickSummary: buildQuickSummary(item.description || item.support_detail)
   };
 

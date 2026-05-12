@@ -5,6 +5,7 @@ import type {
 } from '../types/app';
 import { requestJson } from './apiClient';
 import { buildQuickSummary } from '../utils/summaries';
+import { getExternalSourceUrl } from '../utils/sourceUrls';
 
 interface BackendNewsletterSummary {
   id: number;
@@ -13,6 +14,7 @@ interface BackendNewsletterSummary {
   tags: string[];
   district: string | null;
   summary?: string | null;
+  source_url?: string | null;
 }
 
 interface BackendNewsletterDetail extends BackendNewsletterSummary {
@@ -107,6 +109,7 @@ function mapNewsletterSummary(
     views: 0,
     featured: options.featured,
     isRead: options.isRead,
+    sourceUrl: getExternalSourceUrl(item.source_url),
     quickSummary: buildQuickSummary(
       item.summary || '상세 브리핑을 불러와 확인해 주세요.'
     )
@@ -118,6 +121,7 @@ function mapNewsletterDetail(
   options: Partial<Newsletter> = {}
 ): Newsletter {
   const briefing = item.ai_briefing || {};
+  const sections = normalizeNewsletterSections(briefing.sections);
 
   return {
     ...mapNewsletterSummary(
@@ -132,9 +136,10 @@ function mapNewsletterDetail(
     quickSummary: buildQuickSummary(
       briefing.summary || item.summary || '요약 내용이 없습니다.'
     ),
-    sections: briefing.sections || [],
+    sections,
     culturalEvents: briefing.cultural_events || [],
-    sourceUrl: getFirstSourceUrl(briefing.sections),
+    sourceUrl:
+      getExternalSourceUrl(item.source_url) || getFirstSourceUrl(sections),
     weather: briefing.weather,
     generatedAt: briefing.generated_at
   };
@@ -147,6 +152,16 @@ function getFirstSourceUrl(sections?: NewsletterSection[]) {
   }
 
   return undefined;
+}
+
+function normalizeNewsletterSections(sections?: NewsletterSection[]) {
+  return (sections ?? []).map((section) => ({
+    ...section,
+    highlights: section.highlights.map((highlight) => ({
+      ...highlight,
+      link: getExternalSourceUrl(highlight.link)
+    }))
+  }));
 }
 
 function formatDate(value: string) {

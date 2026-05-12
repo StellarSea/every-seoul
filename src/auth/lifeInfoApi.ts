@@ -1,5 +1,6 @@
 import type { LifeInfo, NearbyFacility, ProductPrice } from '../types/app';
 import { requestJson } from './apiClient';
+import { getExternalSourceUrl } from '../utils/sourceUrls';
 
 interface BackendMetric {
   label: string;
@@ -111,7 +112,7 @@ function mapNearbyFacility(item: BackendNearbyFacility): NearbyFacility {
     category: item.category,
     address: item.address,
     description: item.description,
-    sourceUrl: item.source_url || undefined,
+    sourceUrl: getExternalSourceUrl(item.source_url),
     latitude: item.latitude ?? undefined,
     longitude: item.longitude ?? undefined
   };
