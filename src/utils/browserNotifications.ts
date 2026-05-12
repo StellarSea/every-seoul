@@ -89,9 +89,8 @@ export async function sendServerTestPush() {
 }
 
 async function subscribeToWebPush() {
-  const publicKey =
-    getConfiguredVapidPublicKey() || (await fetchPushPublicKey());
-  if (!publicKey) return null;
+  const applicationServerKey = await getApplicationServerKey();
+  if (!applicationServerKey) return null;
 
   const registration = await navigator.serviceWorker.register('/sw.js');
   const existing = await registration.pushManager.getSubscription();
@@ -99,7 +98,7 @@ async function subscribeToWebPush() {
     existing ||
     (await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey)
+      applicationServerKey
     }));
 
   const json = subscription.toJSON();
@@ -118,9 +117,34 @@ async function subscribeToWebPush() {
   return subscription;
 }
 
+async function getApplicationServerKey() {
+  const configuredKey = toValidApplicationServerKey(
+    getConfiguredVapidPublicKey()
+  );
+  if (configuredKey) return configuredKey;
+
+  const serverKey = toValidApplicationServerKey(await fetchPushPublicKey());
+  if (serverKey) return serverKey;
+
+  throw new Error('VAPID 공개키 형식을 확인해 주세요.');
+}
+
+function toValidApplicationServerKey(value?: string | null) {
+  if (!value) return null;
+
+  try {
+    const key = urlBase64ToUint8Array(value);
+    if (key.byteLength !== 65 || key[0] !== 4) return null;
+    return key;
+  } catch {
+    return null;
+  }
+}
+
 function urlBase64ToUint8Array(value: string) {
-  const padding = '='.repeat((4 - (value.length % 4)) % 4);
-  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const normalized = value.trim().replace(/^['"]|['"]$/g, '');
+  const padding = '='.repeat((4 - (normalized.length % 4)) % 4);
+  const base64 = (normalized + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
   return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)));
 }
